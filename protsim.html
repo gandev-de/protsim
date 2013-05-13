@@ -1,0 +1,18 @@
+<head>
+  <title>protsim</title>
+</head>
+
+<body>
+  {{> watch}}
+</body>
+
+<template name="watch">
+  {{#with received}}
+  	{{count}}
+  	{{#each value.values}}
+  		{{current}}
+  	{{/each}}
+  {{/with}}
+  <input type="button" id="testsend" value="send">
+  <input type="input" id="test">
+</template>
