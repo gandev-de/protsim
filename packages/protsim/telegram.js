@@ -16,6 +16,7 @@ var type_lengths = {"String": 0,
 
 Telegram = function(options) {
 	options = options || {};
+	this._id = options._id;
 	this.name = options.name || "default-tel";
 	this.type = options.type || ["send", "receive"];
 	this.values = options.values || [{type: "String",
@@ -28,6 +29,7 @@ Telegram = function(options) {
 
 Telegram.fromJSONValue = function (value) {
   return new Telegram({
+    _id: value._id,
     name: value.name,
     type: value.type,
     values: value.values
@@ -57,13 +59,15 @@ Telegram.prototype = {
 	},
 
 	equals: function (other) {
-		return this.name == other.name &&
-		this.type == other.type &&
-		_.isEqual(this.values, other.values);
+		return this._id == other._id &&
+			this.name == other.name &&
+			this.type == other.type &&
+			_.isEqual(this.values, other.values);
 	},
 
 	clone: function () {
 		return new Telegram({
+			_id: this._id,
 			name: this.name,
 			type: this.type,
 			values: this.values
@@ -72,6 +76,7 @@ Telegram.prototype = {
 
 	toJSONValue: function () {
 		return {
+			_id: this._id,
 			name: this.name,
 			type: this.type,
 			values: this.values

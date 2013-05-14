@@ -1,5 +1,6 @@
 Interface = function(options) {
 	options = options || {};
+  this._id = options._id;
 	this.name = options.name || "udp-default";
 	this.transport = {type: options.type || "udp"};
 	switch(this.transport.type) {
@@ -23,6 +24,7 @@ Interface = function(options) {
 
 Interface.fromJSONValue = function (value) {
   return new Interface({
+    _id: value._id,
     name: value.name,
     transport: value.transport
   });
@@ -36,12 +38,14 @@ Interface.prototype = {
   },
 
   equals: function (other) {
-    return this.name == other.name &&
+    return this._id == other._id &&
+      this.name == other.name &&
       _.isEqual(this.transport, other.transport);
   },
 
   clone: function () {
     return new Interface({
+      _id: this._id,
       name: this.name,
       transport: this.transport
     });
@@ -49,6 +53,7 @@ Interface.prototype = {
 
   toJSONValue: function () {
     return {
+      _id: this._id,
       name: this.name,
       transport: this.transport
     };

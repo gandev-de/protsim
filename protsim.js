@@ -1,13 +1,19 @@
 if (Meteor.isClient) {
-  Session.set("protocol", new Protocol());
+  Session.set("protocol", null);
 
   Deps.autorun(function () {
     Meteor.subscribe("protwatch", "w1", Session.get("protocol"));
   });
 
+  //************* watch Template *************
+
   Template.watch.helpers({
     received: function () {
       return Protwatch.findOne();
+    },
+
+    protocol: function () {
+      return Session.get("protocol");
     }
   });
 
@@ -21,6 +27,25 @@ if (Meteor.isClient) {
       telegram.values[0].current = test;
 
       Meteor.call("sendTelegram", "w1", telegram);
+    }
+  });
+
+  //************* def Template *************
+
+  Template.def.helpers({
+    protdef: function () {
+      return Protdef.find();
+    }
+  });
+
+  Template.def.events({
+    'click .protocol': function () {
+      var self = this;
+      Session.set("protocol", self);
+    },
+
+    'click #testcreate' : function () {
+      Meteor.call("saveProtocol", new Protocol());
     }
   });
 }

@@ -79,6 +79,8 @@ ProtocolWatch.prototype.setupWatch = function() {
 Meteor.publish("protwatch", function(watch_id, protocol) {
   var self = this;
 
+  if(!protocol) return;
+
   var new_watch = true;
   var watch;
   if(watchs[watch_id]) {
