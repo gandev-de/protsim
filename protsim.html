@@ -7,6 +7,13 @@
   {{> watch}}
 </body>
 
+<template name="def">
+  {{#each protdef}}
+    <div id="{{_id}}" class="protocol {{selected}}">{{name}}</div>
+  {{/each}}
+  <input type="button" id="testcreate" value="add">
+</template>
+
 <template name="watch">
   {{#with received}}
   	{{count}}
@@ -15,15 +22,8 @@
   	{{/each}}
   {{/with}}
  
-  {{#if protocol}}
+  {{#with protocol}}
     <input type="button" id="testsend" value="send">
     <input type="input" id="test">
-  {{/if}}
-</template>
-
-<template name="def">
-  {{#each protdef}}
-    <div id="{{_id}}" class="protocol">{{name}}</div>
-  {{/each}}
-  <input type="button" id="testcreate" value="add">
+  {{/with}}
 </template>

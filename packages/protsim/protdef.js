@@ -2,15 +2,6 @@ Telegrams = new Meteor.Collection("telegrams");
 Interfaces = new Meteor.Collection("interfaces");
 
 if(Meteor.isClient) {
-	//TODO move to protwatch
-	Protwatch = new Meteor.Collection("protwatch", {
-		transform: function (coll) {
-			if(coll && coll.value)
-				coll.value = EJSON.parse(coll.value);
-			return coll;
-		}
-	});
-
 	Protdef = new Meteor.Collection("protocols", {
 		transform: function (coll) {
 			coll.interface = Interfaces.findOne({_id: coll.interface});
@@ -31,8 +22,6 @@ if(Meteor.isClient) {
 		}
 	});
 
-	Meteor.subscribe("telegrams");
-	Meteor.subscribe("interfaces");
 	Meteor.subscribe("protdef");
 }
 
@@ -40,13 +29,10 @@ if(Meteor.isServer) {
 	Protocols = new Meteor.Collection("protocols");
 
 	Meteor.publish("protdef", function () {
-		var protocols = Protocols.find();
-		// Publish collection with another name
-        //protocols._cursorDescription.collectionName = "protdef"; TODO ???
 		return [
-			protocols,
 			Telegrams.find(),
-			Interfaces.find()
+			Interfaces.find(),
+			Protocols.find() //order matters!
 		];
 	});
 

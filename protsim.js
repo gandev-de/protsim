@@ -1,15 +1,43 @@
 if (Meteor.isClient) {
   Session.set("protocol", null);
+  Session.set("protocol_selected", false);
 
   Deps.autorun(function () {
-    Meteor.subscribe("protwatch", "w1", Session.get("protocol"));
+    var protocol = Session.get("protocol");
+    if(protocol) {
+      Meteor.call("addWatch", protocol._id, protocol);
+    }
+  });
+
+  //************* def Template *************
+
+  Template.def.helpers({
+    protdef: function () {
+      return Protdef.find();
+    },
+
+    selected: function () {
+      return Session.equals("protocol_selected", this._id) ? 'selected' : '';
+    }
+  });
+
+  Template.def.events({
+    'click .protocol': function () {
+      var self = this;
+      Session.set("protocol", self);
+      Session.set("protocol_selected", self._id);
+    },
+
+    'click #testcreate' : function () {
+      Meteor.call("saveProtocol", new Protocol());
+    }
   });
 
   //************* watch Template *************
 
   Template.watch.helpers({
     received: function () {
-      return Protwatch.findOne();
+      return Protwatch.findOne({_id: Session.get("protocol_selected")});
     },
 
     protocol: function () {
@@ -20,32 +48,12 @@ if (Meteor.isClient) {
   Template.watch.events({
     'click #testsend': function (evt, tmpl) {
       var test = tmpl.find("#test").value;
-
-      console.log(test);
+      var protocol = this;
 
       var telegram = new Telegram();
       telegram.values[0].current = test;
 
-      Meteor.call("sendTelegram", "w1", telegram);
-    }
-  });
-
-  //************* def Template *************
-
-  Template.def.helpers({
-    protdef: function () {
-      return Protdef.find();
-    }
-  });
-
-  Template.def.events({
-    'click .protocol': function () {
-      var self = this;
-      Session.set("protocol", self);
-    },
-
-    'click #testcreate' : function () {
-      Meteor.call("saveProtocol", new Protocol());
+      Meteor.call("sendTelegram", protocol._id, telegram);
     }
   });
 }
