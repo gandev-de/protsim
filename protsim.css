@@ -1,3 +1,7 @@
 .protocol.selected {
     background-color: green;
 }
+
+.telegram.selected {
+    background-color: yellow;
+}

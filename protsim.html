@@ -9,8 +9,21 @@
 
 <template name="def">
   {{#each protdef}}
-    <div id="{{_id}}" class="protocol {{selected}}">{{name}}</div>
+    <div id="{{_id}}" class="protocol {{selected_protocol}}">
+      {{name}} - 
+      {{interface.name}}
+      [{{interface.transport.local_port}} -->
+      {{interface.transport.remote_ip}}: 
+      {{interface.transport.remote_port}}]
+    </div>
   {{/each}}
+  {{#with protocol}}
+    {{#each telegrams}}
+      <div class="telegram {{selected_telegram}}">  
+          {{name}}
+      </div>
+    {{/each}}
+  {{/with}}
   <input type="button" id="testcreate" value="add">
 </template>
 
@@ -23,7 +36,9 @@
   {{/with}}
  
   {{#with protocol}}
-    <input type="button" id="testsend" value="send">
-    <input type="input" id="test">
+    {{#if telegram}}
+      <input type="button" id="testsend" value="send">
+      <input type="input" id="test">
+    {{/if}}
   {{/with}}
 </template>
