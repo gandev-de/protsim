@@ -7,7 +7,9 @@ if(Meteor.isClient) {
     }
   });
 
-  Meteor.subscribe("protwatch");
+  Deps.autorun(function() {
+    Meteor.subscribe("protwatch");
+  });
 }
 
 if(Meteor.isServer) {
@@ -25,21 +27,25 @@ if(Meteor.isServer) {
 
   var watchs = {pub: undefined};
 
-  ProtocolWatch = function(protocol, watch_id) {
+  ProtocolWatch = function(pub, protocol, watch_id) {
+    this.pub = pub;
     this.protocol = protocol;
-    this.watch_id = watch_id || "w1";
+    this.watch_id = watch_id || protocol._id;
     this.telegram_counter = 0;
   };
 
-  ProtocolWatch.prototype.changeSubscription = function(msg) {
+  ProtocolWatch.prototype.new_telegram = function(msg) {
     var self = this;
     //identify telegram type
     var telegram = identifyTelegram(msg, self.protocol.telegrams);
     if(telegram instanceof Telegram) {
       telegram.values = telegram.convertFromBuffer(msg);
+      console.log("change..sub: ", self.pub._session.id);
       //change subscription
-      watchs.pub.changed("protwatch", self.watch_id,
-        {count: ++self.telegram_counter, value: EJSON.stringify(telegram)});
+      self.pub.changed("protwatch", self.watch_id,
+        {count: ++self.telegram_counter, raw: msg.toString(), value: EJSON.stringify(telegram)});
+      //save last telegram for new subscriptions
+      self.last_telegram = telegram;
     }
   };
 
@@ -52,8 +58,8 @@ if(Meteor.isServer) {
         var udp = dgram.createSocket("udp4");
         udp.bind(transport.local_port, transport.local_ip);
         udp.on("message", function(msg, rinfo) {
-          console.log("message received: " + msg.toString());
-          self.changeSubscription(msg);
+          console.log("udp message received: " + msg.toString());
+          self.new_telegram(msg);
         });
         self.connection = udp;
         break;
@@ -76,17 +82,31 @@ if(Meteor.isServer) {
     }
   };
 
-  ProtocolWatch.prototype.setupWatch = function() {
+  ProtocolWatch.prototype.publish = function() {
     var self = this;
+    console.log("initial publish..sub: ", self.pub._session.id);
+
     //add new watch to subscription
-    watchs.pub.added("protwatch", self.watch_id);
+    self.pub.added("protwatch", self.watch_id, self.last_telegram);
+    self.pub.ready();
+  };
+
+  ProtocolWatch.prototype.stopWatch = function() {
+    var self = this;
+    console.log("stop watch..sub: ", self.pub._session.id);
+
+    self.closeConnection();
+    //remove watch from subscription
+    self.pub.removed("protwatch", self.watch_id);
   };
 
   //**********************************************************************************
 
   //Receive
 
-  var add_watch = function (watch_id, protocol) {
+  var start_watch = function (watch_id, protocol) {
+    console.log("start watch..id: ", watch_id, "..sub:", watchs.pub._session.id);
+
     var new_watch = true;
     var watch;
     if(watchs[watch_id]) {
@@ -95,34 +115,45 @@ if(Meteor.isServer) {
     }
 
     var init_watch = function () {
-      watch = new ProtocolWatch(protocol, watch_id);
+      watch = new ProtocolWatch(watchs.pub, protocol, watch_id);
       watch.createConnection();
-      watchs[watch_id] = watch;
     };
 
     if(new_watch) {
       init_watch();
-      watch.setupWatch();
-    } else if(!_.isEqual(watch.protocol.interface, protocol.interface)) {
-      watch.closeConnection();
-      init_watch();
+      watch.publish();
     }
+
+    watchs[watch_id] = watch;
+  };
+
+  var end_watch = function (watch_id) {
+    if(watchs[watch_id] instanceof ProtocolWatch) {
+      watchs[watch_id].stopWatch();
+    }
+    delete watchs[watch_id];
   };
 
   //publish watch changes
   Meteor.publish("protwatch", function() {
     var self = this;
 
+    if(watchs.pub) {
+      watchs.pub.stop();
+    }
     watchs.pub = self;
 
-    self.ready();
+    for(var watch in watchs) {
+      if(watchs[watch] instanceof ProtocolWatch) {
+        watchs[watch].pub = self;
+        watchs[watch].publish();
+      }
+    }
 
-    console.log("subscription started..");
-
-    this.onStop(function () {
-      console.log("subscription stopped..");
-      //TODO close watchs or something
+    self.onStop(function() {
+      console.log("subscription stopped..sub: ", self._session.id);
     });
+    console.log("subscription started..sub: ", self._session.id);
   });
 
   //**********************************************************************************
@@ -147,12 +178,21 @@ if(Meteor.isServer) {
 
   Meteor.methods({
     sendTelegram: function (watch_id, telegram) {
-      sendMessage(watch_id, telegram.convertToBuffer());
+      if(telegram instanceof Telegram) {
+        sendMessage(watch_id, telegram.convertToBuffer());
+      } else {
+        sendMessage(watch_id, new Buffer(telegram));
+      }
     },
 
-    addWatch: function (watch_id, protocol) {
-      if(protocol)
-        add_watch(watch_id, protocol);
+    startWatch: function (watch_id, protocol) {
+      if(protocol instanceof Protocol) {
+        start_watch(watch_id, protocol);
+      }
+    },
+
+    endWatch: function (watch_id) {
+        end_watch(watch_id);
     }
   });
 }

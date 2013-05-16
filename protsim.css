@@ -3,5 +3,13 @@
 }
 
 .telegram.selected {
-    background-color: yellow;
+    background-color: blue;
+}
+
+.edit_local_port, .edit_remote_port {
+    width: 50px;
+}
+
+.edit_remote_ip {
+    width: 80px;
 }

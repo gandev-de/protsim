@@ -9,9 +9,9 @@ var type_lengths = {"String": 0,
 					"Int16BE": 2,
 					"Int32LE": 4,
 					"Int32BE": 4,
-					"FloatLE": 1,
+					"FloatLE": 2,
 					"FloatBE": 2,
-					"DoubleLE": 2,
+					"DoubleLE": 4,
 					"DoubleBE": 4};
 
 Telegram = function(options) {

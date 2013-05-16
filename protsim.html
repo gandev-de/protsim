@@ -9,22 +9,52 @@
 
 <template name="def">
   {{#each protdef}}
-    <div id="{{_id}}" class="protocol {{selected_protocol}}">
-      {{name}} - 
-      {{interface.name}}
-      [{{interface.transport.local_port}} -->
-      {{interface.transport.remote_ip}}: 
-      {{interface.transport.remote_port}}]
+    <div id="{{_id}}" class="row protocol {{selected_protocol}}">
+      <div class="span2">{{name}}</div>
+      
+      {{#with interface}}
+        <div class="span2">{{name}}</div>
+        {{#if editing_local_port}}
+          <div class="span1 edit">
+            <input class="edit_local_port" id="{{_id}}_local_port" type="text" value="{{transport.local_port}}" />
+          </div>
+        {{else}}
+          <div class="span1 display">
+            <div class="display_local_port">{{transport.local_port}}</div>
+          </div>
+        {{/if}}
+
+        {{#if editing_remote_ip}}
+          <div class="span1 edit">
+            <input class="edit_remote_ip" id="{{_id}}_remote_ip" type="text" value="{{transport.remote_ip}}" />
+          </div>
+        {{else}}
+          <div class="span1 display">
+            <div class="display_remote_ip">{{transport.remote_ip}}</div>
+          </div>
+        {{/if}}
+
+        {{#if editing_remote_port}}
+          <div class="span1 edit">
+            <input class="edit_remote_port" id="{{_id}}_remote_port" type="text" value="{{transport.remote_port}}" />
+          </div>
+        {{else}}
+          <div class="span1 display">
+            <div class="display_remote_port">{{transport.remote_port}}</div>
+          </div>
+        {{/if}}
+      {{/with}}
+
     </div>
   {{/each}}
+
   {{#with protocol}}
     {{#each telegrams}}
-      <div class="telegram {{selected_telegram}}">  
-          {{name}}
-      </div>
+      <span class="label telegram {{selected_telegram}}">{{name}}</span>
     {{/each}}
+    <input type="button" id="testremove" value="remove protocol">
   {{/with}}
-  <input type="button" id="testcreate" value="add">
+  <input type="button" id="testcreate" value="add protocol">
 </template>
 
 <template name="watch">
@@ -36,7 +66,14 @@
   {{/with}}
  
   {{#with protocol}}
-    {{#if telegram}}
+    <!-- TODO http://www.larentis.eu/switch/ -->
+    <div class="switch"> 
+        <input type="checkbox" {{watched}}/>
+        <input type="button" id="start_watch" value="watch">
+    </div>
+
+    {{#if telegram_selected}}
+      <input type="button" id="loopback" value="loopback">
       <input type="button" id="testsend" value="send">
       <input type="input" id="test">
     {{/if}}
