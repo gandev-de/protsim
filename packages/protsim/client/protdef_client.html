@@ -1,0 +1,83 @@
+<template name="protdef">
+  {{#each protdef}}
+    <div id="{{_id}}" class="row protocol {{selected_protocol}}">
+      <div class="span2">{{name}}</div>
+      
+      {{#if equal protocol._id _id}}
+        {{#with interface}}
+        <div class="span2 interface">
+          {{> interface}}
+        </div>
+        {{/with}}
+
+        <div class="span2 telegrams">
+          {{#each telegrams}}
+            <span class="label telegram {{selected_telegram}}">{{name}}</span>
+          {{/each}}
+        </div>
+
+        <div class="span2 telegrams">
+          {{#with telegram protocol}}
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Offset</th>
+                  <th>Type</th>
+                  <th>Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each values}}
+                  <tr>
+                    <td>{{offset}}</td>
+                    <td>{{type}}</td>
+                    <td>{{name}}</td>
+                  </tr>
+               {{/each}}
+              </tbody>
+            </table>
+          {{/with}}
+        </div>
+      {{/if}}
+    </div>
+  {{/each}}
+
+  {{#with protocol}}
+    <input type="button" id="testremove" value="remove protocol">
+  {{/with}}
+  <input type="button" id="testcreate" value="add protocol">
+</template>
+
+<template name="interface">
+  {{name}}
+
+  {{#if editing_local_port}}
+    <div class="span1 edit">
+      <input class="edit_local_port" id="{{_id}}_local_port" type="text" value="{{transport.local_port}}" />
+    </div>
+  {{else}}
+    <div class="span1 display">
+      <div class="display_local_port">{{transport.local_port}}</div>
+    </div>
+  {{/if}}
+
+  {{#if editing_remote_ip}}
+    <div class="span1 edit">
+      <input class="edit_remote_ip" id="{{_id}}_remote_ip" type="text" value="{{transport.remote_ip}}" />
+    </div>
+  {{else}}
+    <div class="span1 display">
+      <div class="display_remote_ip">{{transport.remote_ip}}</div>
+    </div>
+  {{/if}}
+
+  {{#if editing_remote_port}}
+    <div class="span1 edit">
+      <input class="edit_remote_port" id="{{_id}}_remote_port" type="text" value="{{transport.remote_port}}" />
+    </div>
+  {{else}}
+    <div class="span1 display">
+      <div class="display_remote_port">{{transport.remote_port}}</div>
+    </div>
+  {{/if}}
+</template>

@@ -1,0 +1,24 @@
+header {
+	top: 0;
+	width: 100%;
+	background: #3779ec;
+	height: 90px;
+	overflow: hidden;
+	line-height: 90px;
+}
+
+.protocol.selected {
+    background-color: rgb(148, 172, 148);
+}
+
+.telegram.selected {
+    background-color: blue;
+}
+
+.edit_local_port, .edit_remote_port {
+    width: 50px;
+}
+
+.edit_remote_ip {
+    width: 80px;
+}
