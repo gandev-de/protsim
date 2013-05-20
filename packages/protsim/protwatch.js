@@ -7,9 +7,9 @@ if(Meteor.isClient) {
     }
   });
 
-  Deps.autorun(function() {
+  //Deps.autorun(function() {
     Meteor.subscribe("protwatch");
-  });
+  //});
 }
 
 if(Meteor.isServer) {
