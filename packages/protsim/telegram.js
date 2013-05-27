@@ -1,39 +1,44 @@
-var type_lengths = {"String": 0,
-					"UInt8": 1,
-					"UInt16LE": 2,
-					"UInt16BE": 2,
-					"UInt32LE": 4,
-					"UInt32BE": 4,
-					"Int8": 1,
-					"Int16LE": 2,
-					"Int16BE": 2,
-					"Int32LE": 4,
-					"Int32BE": 4,
-					"FloatLE": 2,
-					"FloatBE": 2,
-					"DoubleLE": 4,
-					"DoubleBE": 4};
+var type_lengths = {
+	"String": 0,
+	"UInt8": 1,
+	"UInt16LE": 2,
+	"UInt16BE": 2,
+	"UInt32LE": 4,
+	"UInt32BE": 4,
+	"Int8": 1,
+	"Int16LE": 2,
+	"Int16BE": 2,
+	"Int32LE": 4,
+	"Int32BE": 4,
+	"FloatLE": 2,
+	"FloatBE": 2,
+	"DoubleLE": 4,
+	"DoubleBE": 4
+};
 
 Telegram = function(options) {
 	options = options || {};
 	this._id = options._id;
 	this.name = options.name || "default-tel";
 	this.type = options.type || ["send", "receive"];
-	this.values = options.values || [{type: "String",
-									offset: 0,
-									count: 5,
-									encoding: "utf-8",
-									name: "str1",
-									current: "n/a"}];
+	this.values = options.values || [{
+			type: "String",
+			offset: 0,
+			count: 5,
+			encoding: "utf-8",
+			name: "str1",
+			current: "n/a"
+		}
+	];
 };
 
-Telegram.fromJSONValue = function (value) {
-  return new Telegram({
-    _id: value._id,
-    name: value.name,
-    type: value.type,
-    values: value.values
-  });
+Telegram.fromJSONValue = function(value) {
+	return new Telegram({
+		_id: value._id,
+		name: value.name,
+		type: value.type,
+		values: value.values
+	});
 };
 
 Telegram.prototype = {
@@ -42,11 +47,11 @@ Telegram.prototype = {
 	byteCount: function() {
 		var self = this;
 		var bytes = 0;
-		self.values.forEach(function (value) {
+		self.values.forEach(function(value) {
 			var len = type_lengths[value.type];
-			if(len === 0 && value.count)
-				bytes += value.count; //String special case
-			else if(len > 0)
+			if ((!len || len === 0) && value.count)
+				bytes += value.count; //add count specified with value
+			else if (len > 0)
 				bytes += len;
 		});
 		return bytes;
@@ -54,18 +59,18 @@ Telegram.prototype = {
 
 	//EJSON
 
-	typeName: function () {
+	typeName: function() {
 		return "Telegram";
 	},
 
-	equals: function (other) {
+	equals: function(other) {
 		return this._id == other._id &&
 			this.name == other.name &&
 			this.type == other.type &&
 			_.isEqual(this.values, other.values);
 	},
 
-	clone: function () {
+	clone: function() {
 		return new Telegram({
 			_id: this._id,
 			name: this.name,
@@ -74,7 +79,7 @@ Telegram.prototype = {
 		});
 	},
 
-	toJSONValue: function () {
+	toJSONValue: function() {
 		return {
 			_id: this._id,
 			name: this.name,
@@ -86,17 +91,17 @@ Telegram.prototype = {
 
 EJSON.addType("Telegram", Telegram.fromJSONValue);
 
-if(Meteor.isServer) {
+if (Meteor.isServer) {
 	_.extend(Telegram.prototype, {
 		//msg - Buffer, telegrams - [Telegram]
-		convertFromBuffer: function (msg) {
+		convertFromBuffer: function(msg) {
 			var self = this;
 
 			var rcv_value, values = [];
-			for(var i = 0; i < self.values.length; i++) {
+			for (var i = 0; i < self.values.length; i++) {
 				var value = self.values[i];
 				try {
-					switch(value.type) {
+					switch (value.type) {
 						case "UInt8":
 							rcv_value = msg.readUInt8(value.offset);
 							break;
@@ -145,7 +150,7 @@ if(Meteor.isServer) {
 								value.offset + value.count);
 							break;
 					}
-				} catch(e) {
+				} catch (e) {
 					rcv_value = "n/a";
 				}
 				value.current = rcv_value;
@@ -154,61 +159,65 @@ if(Meteor.isServer) {
 			return values;
 		},
 
-		convertToBuffer: function () {
+		convertToBuffer: function() {
 			var self = this;
 
 			var msg = new Buffer(self.byteCount());
-			for(var i = 0; i < self.values.length; i++) {
+			for (var i = 0; i < self.values.length; i++) {
 				var value = self.values[i];
-				switch(value.type) {
-					case "UInt8":
-						msg.writeUInt8(value.current, value.offset);
-						break;
-					case "UInt16LE":
-						msg.writeUInt16LE(value.current, value.offset);
-						break;
-					case "UInt16BE":
-						msg.writeUInt16BE(value.current, value.offset);
-						break;
-					case "UInt32LE":
-						msg.writeUInt32LE(value.current, value.offset);
-						break;
-					case "UInt32BE":
-						msg.writeUInt32BE(value.current, value.offset);
-						break;
-					case "Int8":
-						msg.writeInt8(value.current, value.offset);
-						break;
-					case "Int16LE":
-						msg.writeInt16LE(value.current, value.offset);
-						break;
-					case "Int16BE":
-						msg.writeInt16BE(value.current, value.offset);
-						break;
-					case "Int32LE":
-						msg.writeInt32LE(value.current, value.offset);
-						break;
-					case "Int32BE":
-						msg.writeInt32BE(value.current, value.offset);
-						break;
-					case "FloatLE":
-						msg.writeFloatLE(value.current, value.offset);
-						break;
-					case "FloatBE":
-						msg.writeFloatBE(value.current, value.offset);
-						break;
-					case "DoubleLE":
-						msg.writeDoubleLE(value.current, value.offset);
-						break;
-					case "DoubleBE":
-						msg.writeDoubleBE(value.current, value.offset);
-						break;
-					case "String":
-						msg.write(value.current,
-							value.offset,
-							value.offset + value.current.length,
-							value.encoding);
-						break;
+				try {
+					switch (value.type) {
+						case "UInt8":
+							msg.writeUInt8(+value.current, value.offset);
+							break;
+						case "UInt16LE":
+							msg.writeUInt16LE(+value.current, value.offset);
+							break;
+						case "UInt16BE":
+							msg.writeUInt16BE(+value.current, value.offset);
+							break;
+						case "UInt32LE":
+							msg.writeUInt32LE(+value.current, value.offset);
+							break;
+						case "UInt32BE":
+							msg.writeUInt32BE(+value.current, value.offset);
+							break;
+						case "Int8":
+							msg.writeInt8(+value.current, value.offset);
+							break;
+						case "Int16LE":
+							msg.writeInt16LE(+value.current, value.offset);
+							break;
+						case "Int16BE":
+							msg.writeInt16BE(+value.current, value.offset);
+							break;
+						case "Int32LE":
+							msg.writeInt32LE(+value.current, value.offset);
+							break;
+						case "Int32BE":
+							msg.writeInt32BE(+value.current, value.offset);
+							break;
+						case "FloatLE":
+							msg.writeFloatLE(+value.current, value.offset);
+							break;
+						case "FloatBE":
+							msg.writeFloatBE(+value.current, value.offset);
+							break;
+						case "DoubleLE":
+							msg.writeDoubleLE(+value.current, value.offset);
+							break;
+						case "DoubleBE":
+							msg.writeDoubleBE(+value.current, value.offset);
+							break;
+						case "String":
+							msg.write(value.current,
+								value.offset,
+								value.offset + value.current.length,
+								value.encoding);
+							break;
+					}
+				} catch(e) {
+					console.log(e);
 				}
 			}
 			return msg;

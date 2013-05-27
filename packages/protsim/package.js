@@ -1,9 +1,9 @@
 Package.describe({
-	summary: "configurable protocol simulation"
+  summary: "configurable protocol simulation"
 });
 
-Package.on_use(function (api) {
-	api.use(["ejson", "underscore"], ["client", "server"]);
+Package.on_use(function(api) {
+  api.use(["ejson", "underscore"], ["client", "server"]);
   api.use(["bootstrap", "templating"], ["client"]);
 
   api.add_files(["interface.js", "protocol.js", "telegram.js"], ["client", "server"]);
@@ -12,9 +12,12 @@ Package.on_use(function (api) {
   api.add_files(["client/protsim.css"], ["client"]);
   api.add_files(["client/protdef_client.html", "client/protdef_client.js"], ["client"]);
   api.add_files(["client/protwatch_client.html", "client/protwatch_client.js"], ["client"]);
+
+  //sample protocol definitions
+  api.add_files(["protocols/modbus.js"], ["server"]);
 });
 
-Package.on_test(function (api) {
+Package.on_test(function(api) {
   api.use('tinytest');
   api.use(["ejson", "underscore"], ["client", "server"]);
 
