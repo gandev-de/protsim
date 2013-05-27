@@ -1,13 +1,19 @@
 header {
 	top: 0;
 	width: 100%;
-	background: #3779ec;
+	/* background: #3779ec; */
 	height: 90px;
 	overflow: hidden;
 	line-height: 90px;
 }
 
+/* def */
+
 .protocol.selected {
+    background-color: rgb(148, 172, 148);
+}
+
+.protocol.watch_active {
     background-color: rgb(148, 172, 148);
 }
 
@@ -21,4 +27,10 @@ header {
 
 .edit_remote_ip {
     width: 80px;
+}
+
+/* watch */
+
+.watch_telegram.selected {
+    background-color: blue;
 }

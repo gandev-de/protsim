@@ -1,31 +1,33 @@
-if(Meteor.isClient) {
+if (Meteor.isClient) {
   Protwatch = new Meteor.Collection("protwatch", {
-    transform: function (coll) {
-      if(coll && coll.value)
+    transform: function(coll) {
+      if (coll && coll.value)
         coll.value = EJSON.parse(coll.value);
       return coll;
     }
   });
 
   //Deps.autorun(function() {
-    Meteor.subscribe("protwatch");
+  Meteor.subscribe("protwatch");
   //});
 }
 
-if(Meteor.isServer) {
+if (Meteor.isServer) {
   var dgram = Npm.require("dgram");
   var util = Npm.require('util');
 
   var identifyTelegram = function(msg, telegrams) {
     var telegram;
-    for(var i = 0; i < telegrams.length; i++) {
+    for (var i = 0; i < telegrams.length; i++) {
       //TODO select telegram by telegram identifier
       telegram = telegrams[i];
     }
     return telegram;
   };
 
-  var watchs = {pub: undefined};
+  var watchs = {
+    pub: undefined
+  };
 
   ProtocolWatch = function(pub, protocol, watch_id) {
     this.pub = pub;
@@ -38,12 +40,15 @@ if(Meteor.isServer) {
     var self = this;
     //identify telegram type
     var telegram = identifyTelegram(msg, self.protocol.telegrams);
-    if(telegram instanceof Telegram) {
+    if (telegram instanceof Telegram) {
       telegram.values = telegram.convertFromBuffer(msg);
       console.log("change..sub: ", self.pub._session.id);
       //change subscription
-      self.pub.changed("protwatch", self.watch_id,
-        {count: ++self.telegram_counter, raw: msg.toString(), value: EJSON.stringify(telegram)});
+      self.pub.changed("protwatch", self.watch_id, {
+        count: ++self.telegram_counter,
+        raw: msg.toString(),
+        value: EJSON.stringify(telegram)
+      });
       //save last telegram for new subscriptions
       self.last_telegram = telegram;
     }
@@ -53,7 +58,7 @@ if(Meteor.isServer) {
     var self = this;
     var transport = self.protocol.interface.transport;
     console.log("create connection type: " + transport.type);
-    switch(transport.type) {
+    switch (transport.type) {
       case "udp":
         var udp = dgram.createSocket("udp4");
         udp.bind(transport.local_port, transport.local_ip);
@@ -64,7 +69,7 @@ if(Meteor.isServer) {
         self.connection = udp;
         break;
       default:
-         //TODO
+        //TODO
     }
   };
 
@@ -72,13 +77,13 @@ if(Meteor.isServer) {
     var self = this;
     var transport = self.protocol.interface.transport;
     console.log("close connection type: " + transport.type);
-    switch(transport.type) {
+    switch (transport.type) {
       case "udp":
         var udp = self.connection;
-        if(udp && udp._bound) udp.close();
+        if (udp && udp._bound) udp.close();
         break;
       default:
-         //TODO
+        //TODO
     }
   };
 
@@ -104,22 +109,22 @@ if(Meteor.isServer) {
 
   //Receive
 
-  var start_watch = function (watch_id, protocol) {
+  var start_watch = function(watch_id, protocol) {
     console.log("start watch..id: ", watch_id, "..sub:", watchs.pub._session.id);
 
     var new_watch = true;
     var watch;
-    if(watchs[watch_id]) {
+    if (watchs[watch_id]) {
       new_watch = false;
       watch = watchs[watch_id];
     }
 
-    var init_watch = function () {
+    var init_watch = function() {
       watch = new ProtocolWatch(watchs.pub, protocol, watch_id);
       watch.createConnection();
     };
 
-    if(new_watch) {
+    if (new_watch) {
       init_watch();
       watch.publish();
     }
@@ -127,8 +132,8 @@ if(Meteor.isServer) {
     watchs[watch_id] = watch;
   };
 
-  var end_watch = function (watch_id) {
-    if(watchs[watch_id] instanceof ProtocolWatch) {
+  var end_watch = function(watch_id) {
+    if (watchs[watch_id] instanceof ProtocolWatch) {
       watchs[watch_id].stopWatch();
     }
     delete watchs[watch_id];
@@ -138,13 +143,13 @@ if(Meteor.isServer) {
   Meteor.publish("protwatch", function() {
     var self = this;
 
-    if(watchs.pub) {
+    if (watchs.pub) {
       watchs.pub.stop();
     }
     watchs.pub = self;
 
-    for(var watch in watchs) {
-      if(watchs[watch] instanceof ProtocolWatch) {
+    for (var watch in watchs) {
+      if (watchs[watch] instanceof ProtocolWatch) {
         watchs[watch].pub = self;
         watchs[watch].publish();
       }
@@ -160,39 +165,45 @@ if(Meteor.isServer) {
 
   //Send
 
-  var sendMessage = function (watch_id, msg) {
+  var sendMessage = function(watch_id, msg) {
     var watch = watchs[watch_id];
-    if(watch.protocol && watch.protocol.interface && watch.connection) {
+    if (watch.protocol && watch.protocol.interface && watch.connection) {
       var transport = watch.protocol.interface.transport;
-      switch(transport.type) {
+      switch (transport.type) {
         case "udp":
           var udp = watch.connection;
           udp.send(msg, 0, msg.length, transport.remote_port, transport.remote_ip);
           console.log("message sended: " + msg.toString());
           break;
         default:
-           //TODO
+          //TODO
       }
     }
   };
 
   Meteor.methods({
-    sendTelegram: function (watch_id, telegram) {
-      if(telegram instanceof Telegram) {
+    sendTelegram: function(watch_id, telegram, options) {
+      options = options || {};
+      var count = options.count || 1;
+      if (telegram instanceof Telegram) {
         sendMessage(watch_id, telegram.convertToBuffer());
       } else {
-        sendMessage(watch_id, new Buffer(telegram));
+        if (count > 0 && count <= 1000) {
+          for (var i = 0; i < count; i++) {
+            sendMessage(watch_id, new Buffer(telegram));
+          }
+        }
       }
     },
 
-    startWatch: function (watch_id, protocol) {
-      if(protocol instanceof Protocol) {
+    startWatch: function(watch_id, protocol) {
+      if (protocol instanceof Protocol) {
         start_watch(watch_id, protocol);
       }
     },
 
-    endWatch: function (watch_id) {
-        end_watch(watch_id);
+    endWatch: function(watch_id) {
+      end_watch(watch_id);
     }
   });
 }

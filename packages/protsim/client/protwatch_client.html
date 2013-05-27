@@ -1,26 +1,85 @@
-<template name="protwatch"> 
+<template name="protwatch">
+<div class="page-header">
+  <h2>Protocol Watch <small>[{{protocol.name}}]</small></h2>
+</div>
+
+<div class="row protwatch_controls">
   {{#with protocol}}
+  <div class="span3 watch">
     <!-- TODO http://www.larentis.eu/switch/ -->
-    <div class="switch"> 
-        <input type="checkbox" {{watched}}/>
-        <input type="button" id="start_watch" value="watch">
-    </div>
-
-    {{#if telegram_selected}}
-      <input type="button" id="testsend" value="send">
-      <input type="input" id="test">
-    {{/if}}
-  {{/with}}
-
-  <div class="received">
-  {{#with received}}
-    {{#if count}}
-      {{count}}
-     {{#each value.values}}
-       {{current}}
-     {{/each}}
-      <input type="button" id="loopback" value="loopback">
-      {{/if}}
-  {{/with}}
+    <input type="checkbox" {{watched}}/>
+    <button class="btn btn-primary" type="button" id="start_watch">watch</button>
   </div>
+
+  <div class="span4 telegrams">
+    <strong>Select send telegram: </strong>
+    {{#each telegrams}}
+    <span class="label watch_telegram {{selected_telegram}}">{{name}}</span>
+    {{/each}}
+  </div>
+  {{/with}}
+</div>
+
+<div class="row protwatch_values">
+  <div class="span6 send">
+    {{#with telegram protocol}}
+    <div class="page-header">
+      <h3>Send <small>[{{name}}]</small></h3>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Offset</th>
+          <th>Type</th>
+          <th>Name</th>
+          <th>Current Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each values}}
+        <tr>
+          <td>{{offset}}</td>
+          <td>{{type}}</td>
+          <td>{{name}}</td>
+          <td><input type="text" id="{{name}}" value="{{current}}"></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <button class="btn" type="button" id="send">send</button>
+    {{/with}}
+  </div>
+
+  <div class="span5 receive">
+    {{#with received}}
+    <div class="page-header">
+      <h3>Receive <small>[{{count}}]</small></h>
+    </div>
+    {{#if count}}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Offset</th>
+          <th>Type</th>
+          <th>Name</th>
+          <th>Current Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each value.values}}
+        <tr>
+          <td>{{offset}}</td>
+          <td>{{type}}</td>
+          <td>{{name}}</td>
+          <td>{{current}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <button class="btn" type="button" id="loopback">loopback</button>
+    <input type="text" id="loopback_counter" value="100">
+    {{/if}}
+    {{/with}}
+  </div>
+</div>
 </template>

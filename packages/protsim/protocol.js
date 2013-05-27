@@ -1,13 +1,13 @@
-Protocol = function (options) {
-	options = options || {};
+Protocol = function(options) {
+  options = options || {};
   this._id = options._id;
-	this.name = options.name || "udp1";
-	this.interface = options.interface || new Interface();
-	this.telegrams = options.telegrams || [new Telegram()];
-	this.test_responses = options.test_responses || [];
+  this.name = options.name || "udp1";
+  this.interface = options.interface || new Interface();
+  this.telegrams = options.telegrams || [new Telegram()];
+  this.test_responses = options.test_responses || [];
 };
 
-Protocol.fromJSONValue = function (value) {
+Protocol.fromJSONValue = function(value) {
   return new Protocol({
     _id: value._id,
     name: value.name,
@@ -20,11 +20,11 @@ Protocol.fromJSONValue = function (value) {
 Protocol.prototype = {
   constructor: Protocol,
 
-  typeName: function () {
+  typeName: function() {
     return "Protocol";
   },
 
-  equals: function (other) {
+  equals: function(other) {
     return this._id == other._id &&
       this.name == other.name &&
       this.interface.equals(other.interface) &&
@@ -32,7 +32,7 @@ Protocol.prototype = {
       _.isEqual(this.test_responses, other.test_responses);
   },
 
-  clone: function () {
+  clone: function() {
     return new Protocol({
       _id: this._id,
       name: this.name,
@@ -42,7 +42,7 @@ Protocol.prototype = {
     });
   },
 
-  toJSONValue: function () {
+  toJSONValue: function() {
     return {
       _id: this._id,
       name: this.name,
