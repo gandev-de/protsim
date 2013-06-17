@@ -6,3 +6,6 @@
 preserve-inputs
 bootstrap
 insecure
+accounts-ui
+accounts-password
+jquery

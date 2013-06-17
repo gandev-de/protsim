@@ -2,12 +2,25 @@
   <title>protsim</title>
 </head>
 
-<body>
-<header>
-	<div class="page-header">
-    <h1>Protsim <small>Define and test udp,tcp protocols</small></h1>
-  </div>
-</header>
-  	{{> protdef}}
-  	{{> protwatch}}
+<body>	
 </body>
+
+<template name="layout">
+  <div class="container">
+	<div class="navbar">
+	  <div class="navbar-inner">
+	    <a class="brand" href="{{rootPath}}">Protsim</a>
+	    <ul class="nav">
+	      <li class="{{navClassFor 'definition'}}"><a href="{{protdefPath}}">Definition</a></li>
+	      <li class="{{navClassFor 'watch'}}"><a href="{{protwatchPath}}">Watch</a></li>
+	      <li class="{{navClassFor 'log'}}"><a href="{{protlogPath}}">Log</a></li>
+	    </ul>
+	    <ul class="nav pull-right">
+	      <li>{{loginButtons}}</li>
+	    </ul>
+	  </div>
+	</div>
+    	
+    {{{yield}}}
+  </div>
+</template>
