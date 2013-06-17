@@ -47,6 +47,17 @@ if (Meteor.isServer) {
 			} else {
 				Protocols.insert(_.omit(protocol_json, '_id'));
 			}
+		},
+
+		updateTelegram: function(protocol_id, telegram_id, values) {
+			Protocols.update({
+		      _id: protocol_id,
+		      'telegrams._id': telegram_id
+		    }, {
+		      '$set': {
+		        'telegrams.$.values': values
+		      }
+		    });
 		}
 	});
 }
