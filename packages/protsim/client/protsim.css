@@ -9,8 +9,38 @@ header {
 
 /* def */
 
+.tel_val {
+    background-color: rgb(120, 150, 180);
+	-moz-border-radius: 1em 4em 1em 4em;
+	border-radius: 1em 1em 5em 1em;
+	padding: 0.5em; /* place between border and content*/
+	margin: 0.5em; /* place between border and environment*/
+}
+
+.interface {
+    background-color: rgb(160, 180, 200);
+	-moz-border-radius: 1em 4em 1em 4em;
+	border-radius: 1em 1em 1em 1em;
+	padding: 0.5em; /* place between border and content*/
+	margin: 0.5em; /* place between border and environment*/	
+}
+
+.remove_value, .add_value, .submit_telegram {
+	position:relative;
+	left: -4em;
+	bottom: -1.75em;
+}
+
 .protocol.selected {
     background-color: rgb(148, 172, 148);
+    border-radius: 1em 1em 1em 1em;
+    padding: 0.5em;
+}
+
+.protocol {
+    background-color: rgb(240, 240, 240);
+    border-radius: 1em 1em 1em 1em;
+    padding: 0.5em;
 }
 
 .protocol.watch_active {

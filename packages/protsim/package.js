@@ -4,12 +4,12 @@ Package.describe({
 
 Package.on_use(function(api) {
   api.use(["ejson", "underscore"], ["client", "server"]);
-  api.use(["bootstrap", "templating"], ["client"]);
+  api.use(["bootstrap", "templating", "handlebars", "controls"], ["client"]);
 
   api.add_files(["interface.js", "protocol.js", "telegram.js"], ["client", "server"]);
   api.add_files(["protwatch.js", "protdef.js"], ["client", "server"]);
 
-  api.add_files(["client/protsim.css"], ["client"]);
+  api.add_files(["client/protsim.css", "client/form_enhanced.js"], ["client"]);
   api.add_files(["client/protdef_client.html", "client/protdef_client.js"], ["client"]);
   api.add_files(["client/protwatch_client.html", "client/protwatch_client.js"], ["client"]);
 

@@ -4,88 +4,144 @@
   </div>
 
   {{#each protdef}}
-  <div id="{{_id}}" class="row protocol {{selected_protocol}}">
-    <div class="span2">{{name}}</div>
+  <div id="{{_id}}" class="row-fluid protocol {{selected_protocol}}">
+    <div class="span1">
+      {{name}}
+      <div class="btn-group">
+        <a class="btn btn-mini add_protocol"><i class="icon-plus"></i></a>
+        <a class="btn btn-mini btn-danger remove_protocol"><i class="icon-minus"></i></a>
+      </div>
+    </div>
     
     {{#if equal protocol._id _id}}
     {{#with interface}}
-    <div class="span2 interface">
+    <div class="span3 interface">
       {{> interface}}
+      <div class="btn-group">
+        <a class="btn btn-mini add_interface"><i class="icon-plus"></i></a>
+        <a class="btn btn-mini btn-danger remove_interface"><i class="icon-minus"></i></a>
+      </div>
     </div>
     {{/with}}
 
-    <div class="span2 telegrams">
-      {{#each telegrams}}
-      <span class="label telegram {{selected_telegram}}">{{name}}</span>
-      {{/each}}
-    </div>
-
-    <div class="span8 telegrams">
-      {{#with telegram protocol}}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Offset</th>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Count</th>
-            <th>Encoding</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{#each values}}
-          <tr>
-            <td>{{offset}}</td>
-            <td>{{type}}</td>
-            <td>{{name}}</td>
-            <td>{{count}}</td>
-            <td>{{encoding}}</td>
-          </tr>
+    <div class="span7 telegrams">
+      <div class="row-fluid">
+        <div class="span12">
+          Telegrams: 
+          {{#each telegrams}}
+            <span class="label telegram {{selected_telegram}}">{{name}}</span>
           {{/each}}
-        </tbody>
-      </table>
-      {{/with}}
+          <div class="btn-group">
+            <a class="btn btn-mini add_telegram"><i class="icon-plus"></i></a>
+            <a class="btn btn-mini btn-danger remove_telegram"><i class="icon-minus"></i></a>
+          <div class="btn-group">
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span12">
+        {{#with telegram protocol}}
+          {{#TelegramForm}}
+          <form id="myform">
+            {{#each values}}
+            <div class="tel_val">
+              <div class="row-fluid">
+                <div class="span3">
+                  <label>Offset</label>
+                  <input style="width: 50px;" disabled type="text" name="{{name}}.offset" value="{{offset}}">
+                  <div class="btn-group">
+                    <a class="btn btn-mini up"><i class="icon-arrow-up"></i></a>
+                    <a class="btn btn-mini down"><i class="icon-arrow-down"></i></a>
+                  </div>
+                </div>
+
+                <div class="span2">
+                  <label>Type</label>
+                  <select style="width: 100px;" name="{{name}}.type" value="{{type}}">
+                      {{#each value_types}}
+                        {{#if equal this ../type}}
+                          <option selected>{{this}}
+                        {{else}}
+                          <option>{{this}}
+                        {{/if}}
+                        </option>
+                      {{/each}}
+                  </select>
+                </div>
+
+                <div class="span2">
+                  <label>Count</label>         
+                  <input style="width: 70px;" type="text" name="{{name}}.count" value="{{count}}"> 
+                </div>
+
+                <div class="span5">
+                  <label>Encoding</label>           
+                  <input type="text" name="{{name}}.encoding" value="{{encoding}}"> 
+                </div>
+              </div>
+
+              <div class="row-fluid">
+                <div class="span8">
+                  <label>Name</label>
+                  <input style="width: 350px;" type="text" name="{{name}}.name" value="{{name}}">
+                </div>
+                <div class="span4 btn-group">
+                  <a class="btn submit submit_telegram"><i class="icon-hdd"></i></a>
+                  <a class="btn add_value"><i class="icon-plus"></i></a>
+                  <a class="btn btn-danger remove_value"><i class="icon-minus"></i></a>
+                </div>
+              </div>  
+            </div> 
+            {{/each}}
+          </form>
+          {{/TelegramForm}}
+        {{/with}}
+        </div>
+      </div>
     </div>
     {{/if}}
   </div>
   {{/each}}
-
-  {{#with protocol}}
-  <button class="btn" type="button" id="remove_protocol">remove</button>
-  {{/with}}
-  <button class="btn" type="button" id="create_protocol">create</button>
 </template>
 
 <template name="interface">
-  {{name}}
+  <div class="row-fluid">
+    <h5>{{name}}</h5>
+  </div>
 
-  {{#if editing_local_port}}
-  <div class="span1 edit">
-    <input class="edit_local_port" id="{{_id}}_local_port" type="text" value="{{transport.local_port}}" />
+  <div class="row-fluid">
+    {{#if editing_local_port}}
+    <div class="span1 edit">
+      <input class="edit_local_port" id="{{_id}}_local_port" type="text" value="{{transport.local_port}}" />
+    </div>
+    {{else}}
+    <div class="span1 display">
+      <div class="display_local_port">{{transport.local_port}}</div>
+    </div>
+    {{/if}}
   </div>
-  {{else}}
-  <div class="span1 display">
-    <div class="display_local_port">{{transport.local_port}}</div>
-  </div>
-  {{/if}}
 
-  {{#if editing_remote_ip}}
-  <div class="span1 edit">
-    <input class="edit_remote_ip" id="{{_id}}_remote_ip" type="text" value="{{transport.remote_ip}}" />
+  <div class="row-fluid">
+    {{#if editing_remote_ip}}
+    <div class="span1 edit">
+      <input class="edit_remote_ip" id="{{_id}}_remote_ip" type="text" value="{{transport.remote_ip}}" />
+    </div>
+    {{else}}
+    <div class="span1 display">
+      <div class="display_remote_ip">{{transport.remote_ip}}</div>
+    </div>
+    {{/if}}
   </div>
-  {{else}}
-  <div class="span1 display">
-    <div class="display_remote_ip">{{transport.remote_ip}}</div>
-  </div>
-  {{/if}}
 
-  {{#if editing_remote_port}}
-  <div class="span1 edit">
-    <input class="edit_remote_port" id="{{_id}}_remote_port" type="text" value="{{transport.remote_port}}" />
+  <div class="row-fluid">
+    {{#if editing_remote_port}}
+    <div class="span1 edit">
+      <input class="edit_remote_port" id="{{_id}}_remote_port" type="text" value="{{transport.remote_port}}" />
+    </div>
+    {{else}}
+    <div class="span1 display">
+      <div class="display_remote_port">{{transport.remote_port}}</div>
+    </div>
+    {{/if}}
   </div>
-  {{else}}
-  <div class="span1 display">
-    <div class="display_remote_port">{{transport.remote_port}}</div>
-  </div>
-  {{/if}}
 </template>

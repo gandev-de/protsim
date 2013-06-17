@@ -1,3 +1,15 @@
+Control.create('TelegramForm', {
+  extend: FormEnhanced,
+
+  onSubmit: function (fields, form) {
+    console.log(fields);
+
+    Meteor.call("updateTelegram", Session.get("protocol_selected"), Session.get("telegram_selected_def"), _.values(fields));
+
+    form.reset();
+  }
+});
+
 ////////// Helpers for in-place editing //////////
 
 // Returns an event map that handles the "escape" and "return" keys and
@@ -35,11 +47,33 @@ var activateInput = function(input) {
 Session.set("protocol_selected", false);
 Session.set("telegram_selected_def", false);
 
+//constant values
+
+
 //************* protdef Template *************
 
 Template.protdef.helpers({
   equal: function(a, b) {
     return a == b;
+  },
+
+  value_types: function() {
+    return [
+        "String",
+        "UInt8",
+        "UInt16LE",
+        "UInt16BE",
+        "UInt32LE",
+        "UInt32BE",
+        "Int8",
+        "Int16LE",
+        "Int16BE",
+        "Int32LE",
+        "Int32BE",
+        "FloatLE",
+        "FloatBE",
+        "DoubleLE",
+        "DoubleBE"];
   },
 
   protdef: function() {
@@ -85,11 +119,11 @@ Template.protdef.events({
     Session.set("telegram_selected_def", telegram._id);
   },
 
-  'click #create_protocol': function() {
+  'click .add_protocol': function() {
     Meteor.call("saveProtocol", new Protocol());
   },
 
-  'click #remove_protocol': function() {
+  'click .remove_protocol': function() {
     var protocol = this;
     var watch = Protwatch.findOne({
       _id: protocol._id
