@@ -7,14 +7,33 @@ header {
 	line-height: 90px;
 }
 
+input[type=checkbox]
+{
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(2); /* IE */
+  -moz-transform: scale(2); /* FF */
+  -webkit-transform: scale(2); /* Safari and Chrome */
+  -o-transform: scale(2); /* Opera */
+  padding: 10px;
+}
+
 /* def */
 
 .tel_val {
-    background-color: rgb(120, 150, 180);
+  background-color: rgb(120, 150, 180);
 	-moz-border-radius: 1em 4em 1em 4em;
 	border-radius: 1em 1em 5em 1em;
 	padding: 0.5em; /* place between border and content*/
 	margin: 0.5em; /* place between border and environment*/
+}
+
+.value_controls {
+  position: absolute;
+}
+
+.remove_value, .add_value, .submit_telegram {
+  left: 61.5em;
+  bottom: 13em;
 }
 
 .interface {
@@ -23,12 +42,6 @@ header {
 	border-radius: 1em 1em 1em 1em;
 	padding: 0.5em; /* place between border and content*/
 	margin: 0.5em; /* place between border and environment*/	
-}
-
-.remove_value, .add_value, .submit_telegram {
-	position:relative;
-	left: -4em;
-	bottom: -1.75em;
 }
 
 .protocol.selected {
@@ -41,10 +54,6 @@ header {
     background-color: rgb(240, 240, 240);
     border-radius: 1em 1em 1em 1em;
     padding: 0.5em;
-}
-
-.protocol.watch_active {
-    background-color: rgb(148, 172, 148);
 }
 
 .telegram.selected {
@@ -63,4 +72,8 @@ header {
 
 .watch_telegram.selected {
     background-color: blue;
+}
+
+.protocol.watch_active {
+    background-color: rgb(148, 172, 148);
 }

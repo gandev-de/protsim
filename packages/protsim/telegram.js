@@ -1,5 +1,5 @@
 var type_lengths = {
-	"String": 0,
+	"String": 1,
 	"UInt8": 1,
 	"UInt16LE": 2,
 	"UInt16BE": 2,
@@ -41,6 +41,35 @@ Telegram.fromJSONValue = function(value) {
 	});
 };
 
+Telegram._nextOffset= function(values) {
+	var self = this;
+	values = values || self.values;
+	var offset = -1;
+	var last_value;
+	values.forEach(function(value) {
+		if(value.offset > offset) {
+			offset = +value.offset;
+			last_value = value;
+		}
+	});
+
+	if(last_value) {
+		var count = last_value.count;
+		var type_length = type_lengths[last_value.type];
+		return offset + type_length * count;
+	}
+	return 0;
+};
+
+Telegram.recalculateOffset = function(values) {
+	var new_values = [];
+	for (var i = 0; i < values.length; i++) {
+		values[i].offset = i === 0 ? 0 : Telegram._nextOffset(new_values);
+		new_values.push(values[i]);
+	}
+	return values;
+};
+
 Telegram.prototype = {
 	constructor: Telegram,
 
@@ -55,6 +84,28 @@ Telegram.prototype = {
 				bytes += len;
 		});
 		return bytes;
+	},
+
+	addValue: function(value_name) {
+      var self = this;
+      var value = _.find(self.values, function(value) {
+        return value.name === value_name;
+      });
+      var type = value.type || "UInt8";
+      var count = value.count || 1;
+      var encoding = value.encoding;
+      var offset = Telegram._nextOffset(self.values);
+      var name = value.name ? value.name + "_" + offset : "default_val" + offset;
+      var ident_val = value.ident_val || 0;
+      self.values.push({
+		type: type,
+		offset: offset,
+		count: +count,
+		encoding: encoding,
+		name: name,
+		current: undefined,
+		ident_val: +ident_val
+      });
 	},
 
 	//EJSON

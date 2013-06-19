@@ -4,9 +4,14 @@ Control.create('TelegramForm', {
   onSubmit: function (fields, form) {
     console.log(fields);
 
-    Meteor.call("updateTelegram", Session.get("protocol_selected"), Session.get("telegram_selected_def"), _.values(fields));
+    Meteor.call("updateTelegram",
+      Session.get("protocol_selected"),
+      Session.get("telegram_selected_def"),
+      _.values(fields));
 
-    form.reset();
+    //Deps.flush();
+
+    //form.reset();
   }
 });
 
@@ -88,6 +93,11 @@ Template.protdef.helpers({
     return Session.equals("telegram_selected_def", this._id) ? 'selected' : '';
   },
 
+  checked_value: function() {
+    var value = this;
+    return value.ident_val ? "checked" : "";
+  },
+
   protocol: function() {
     return Protdef.findOne({
       _id: Session.get("protocol_selected")
@@ -120,22 +130,132 @@ Template.protdef.events({
   },
 
   'click .add_protocol': function() {
-    Meteor.call("saveProtocol", new Protocol());
+    var protocol = this;
+    Meteor.call("saveProtocol", protocol);
   },
 
   'click .remove_protocol': function() {
     var protocol = this;
-    var watch = Protwatch.findOne({
-      _id: protocol._id
-    });
-    if (watch) {
-      Meteor.call("endWatch", protocol._id);
+    var protocol_count = Protdef.find().count();
+    if(protocol_count > 1) {
+      var watch = Protwatch.findOne({
+        _id: protocol._id
+      });
+      if (watch) {
+        Meteor.call("endWatch", protocol._id);
+      }
+      Protdef.remove({
+        _id: protocol._id
+      });
     }
-    Protdef.remove({
-      _id: protocol._id
+  },
+
+  'click .add_telegram': function() {
+    var protocol = this;
+    protocol.telegrams.push(new Telegram());
+    Meteor.call("saveProtocol", protocol);
+  },
+
+  'click .remove_telegram': function() {
+    var protocol = this;
+    var telegram_id = Session.get("telegram_selected_def");
+    protocol.telegrams = _.filter(protocol.telegrams, function(telegram) {
+        return telegram._id != telegram_id;
+      });
+
+    Meteor.call("saveProtocol", protocol);
+  },
+
+  'click .add_value': function(evt, tmpl) {
+    var telegram = this;
+    var value_name = evt.currentTarget.id;
+
+    telegram.addValue(value_name);
+
+    console.log(telegram);
+
+    Meteor.call('updateTelegram',
+      Session.get("protocol_selected"),
+      telegram._id,
+      telegram.values);
+  },
+
+  'click .remove_value': function(evt, tmpl) {
+    var telegram = this;
+    var value_name = evt.currentTarget.id;
+
+    telegram.values = _.filter(telegram.values, function(value, i, l) {
+      return l.length == 1 || value.name !== value_name;
     });
+
+    console.log(telegram);
+
+    Meteor.call('updateTelegram',
+      Session.get("protocol_selected"),
+      telegram._id,
+      telegram.values);
+  },
+
+  'click .up': function(evt, tmpl) {
+    var telegram = this;
+    var value_name = evt.currentTarget.id;
+
+    swapValue(telegram, value_name, "up");
+  },
+
+  'click .down': function(evt, tmpl) {
+    var telegram = this;
+    var value_name = evt.currentTarget.id;
+
+    swapValue(telegram, value_name, "down");
   }
 });
+
+function swapValue(telegram, value_name, direction) {
+ var new_values = [];
+ var skip_next = false;
+  _.each(telegram.values, function(value, i, l) {
+    if(skip_next === false) {
+      if(l.length == 1 || value.name !== value_name) {
+        new_values.push(value);
+      } else {
+        if(direction == "up") {
+          var last_value = new_values[i - 1];
+          if(last_value) {
+            //swap with upper value if at least second
+            new_values[i - 1] = value;
+            new_values.push(last_value);
+          } else {
+            //at the top
+            new_values.push(value);
+          }
+        } else if(direction == "down") {
+          var next_value = l[i + 1];
+          if(next_value) {
+            //swap with upper value if at least second
+            new_values.push(next_value);
+            new_values.push(value);
+            skip_next = true;
+          } else {
+            //at the bottom
+            new_values.push(value);
+          }
+        }
+      }
+    } else {
+      skip_next = false;
+    }
+  });
+
+  telegram.values = new_values;
+
+  console.log(telegram);
+
+  Meteor.call('updateTelegram',
+    Session.get("protocol_selected"),
+    telegram._id,
+    telegram.values);
+}
 
 //************* interface Template *************
 
