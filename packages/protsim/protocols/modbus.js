@@ -42,7 +42,7 @@ if (Meteor.isServer) {
                name: "Function_Code",
                current: "n/a"
             }, {
-               type: "[Int8]",
+               type: "Int8",
                offset: 8,
                count: 252,
                name: "Data",
@@ -80,7 +80,7 @@ if (Meteor.isServer) {
                name: "Function_Code",
                current: 3
             }, {
-               type: "[Int8]",
+               type: "Int8",
                offset: 8,
                count: 252,
                name: "Data",

@@ -50,14 +50,15 @@ if (Meteor.isServer) {
 		},
 
 		updateTelegram: function(protocol_id, telegram_id, values) {
+			values = Telegram.recalculateOffset(values);
 			Protocols.update({
-		      _id: protocol_id,
-		      'telegrams._id': telegram_id
-		    }, {
-		      '$set': {
-		        'telegrams.$.values': values
-		      }
-		    });
+				_id: protocol_id,
+				'telegrams._id': telegram_id
+			}, {
+				'$set': {
+					'telegrams.$.values': values
+				}
+			});
 		}
 	});
 }
