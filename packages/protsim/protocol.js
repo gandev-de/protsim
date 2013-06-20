@@ -20,6 +20,15 @@ Protocol.fromJSONValue = function(value) {
 Protocol.prototype = {
   constructor: Protocol,
 
+  findTelegramById: function(telegram_id) {
+    var protocol = this;
+    var telegrams = protocol.telegrams;
+    var telegram = _.find(telegrams, function(tel) {
+      return tel._id === telegram_id;
+    });
+    return telegram || new Telegram();
+  },
+
   typeName: function() {
     return "Protocol";
   },
@@ -54,3 +63,30 @@ Protocol.prototype = {
 };
 
 EJSON.addType("Protocol", Protocol.fromJSONValue);
+
+if(Meteor.isServer) {
+  _.extend(Protocol.prototype, {
+      findTelegramByMessage: function(msg) {
+        var protocol = this;
+        var telegrams = protocol.telegrams;
+        var telegram = _.find(telegrams, function(telegram) {
+          var telegram_identifier = [];
+          var values_expected = {};
+          _.each(telegram.values, function(value) {
+            if(value.ident_val && value.identifier) {
+              telegram_identifier.push(value);
+              values_expected[value.offset] = value.identifier;
+            }
+          });
+
+          var values_received = {};
+          _.each(telegram_identifier, function(value) {
+            values_received[value.offset] = telegram.valueFromBuffer(msg, value);
+          });
+
+          return _.isEqual(values_expected, values_received) && values_expected != {};
+        });
+        return telegram || new Telegram();
+      }
+  });
+}

@@ -6,7 +6,19 @@
   {{#each protdef}}
   <div id="{{_id}}" class="row-fluid protocol {{selected_protocol}}">
     <div class="span1">
-      {{name}}
+
+      <div class="row-fluid">
+        {{#if editing_protocol_name}}
+        <div class="span1 edit">
+          <input style="width: 80px;" class="edit_protocol_name" id="{{_id}}_protocol_name" type="text" value="{{name}}" />
+        </div>
+        {{else}}
+        <div class="span1 display">
+          <div class="display_protocol_name">{{name}}</div>
+        </div>
+        {{/if}}
+      </div>
+
       <div class="btn-group">
         <a class="btn btn-mini add_protocol"><i class="icon-plus"></i></a>
         <a class="btn btn-mini btn-danger remove_protocol"><i class="icon-minus"></i></a>
@@ -26,15 +38,21 @@
 
     <div class="span7 telegrams">
       <div class="row-fluid">
-        <div class="span12">
+        <div class="span2">
           Telegrams: 
-          {{#each telegrams}}
-            <span class="label telegram {{selected_telegram}}">{{name}}</span>
-          {{/each}}
           <div class="btn-group">
             <a class="btn btn-mini add_telegram"><i class="icon-plus"></i></a>
             <a class="btn btn-mini btn-danger remove_telegram"><i class="icon-minus"></i></a>
-          <div class="btn-group">
+          </div>
+        </div>
+        <div class="span10">
+          {{#each telegrams}}
+            {{#if editing_telegram_name}}
+              <input style="width: 80px;" class="edit_telegram_name" id="{{_id}}_telegram_name" type="text" value="{{name}}" />
+            {{else}}
+                <span class="display_telegram_name label telegram {{selected_telegram}}">{{name}}</span>
+            {{/if}}
+          {{/each}}
         </div>
       </div>
 

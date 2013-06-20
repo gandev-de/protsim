@@ -24,7 +24,7 @@ Telegram = function(options) {
 	this.values = options.values || [{
 			type: "String",
 			offset: 0,
-			count: 5,
+			count: 50,
 			encoding: "utf-8",
 			name: "str1",
 			current: "n/a"
@@ -78,10 +78,8 @@ Telegram.prototype = {
 		var bytes = 0;
 		self.values.forEach(function(value) {
 			var len = type_lengths[value.type];
-			if ((!len || len === 0) && value.count)
-				bytes += value.count; //add count specified with value
-			else if (len > 0)
-				bytes += len;
+			var count = value.count || 1;
+			bytes += len * count;
 		});
 		return bytes;
 	},
@@ -151,59 +149,9 @@ if (Meteor.isServer) {
 			var rcv_value, values = [];
 			for (var i = 0; i < self.values.length; i++) {
 				var value = self.values[i];
-				try {
-					switch (value.type) {
-						case "UInt8":
-							rcv_value = msg.readUInt8(value.offset);
-							break;
-						case "UInt16LE":
-							rcv_value = msg.readUInt16LE(value.offset);
-							break;
-						case "UInt16BE":
-							rcv_value = msg.readUInt16BE(value.offset);
-							break;
-						case "UInt32LE":
-							rcv_value = msg.readUInt32LE(value.offset);
-							break;
-						case "UInt32BE":
-							rcv_value = msg.readUInt32BE(value.offset);
-							break;
-						case "Int8":
-							rcv_value = msg.readInt8(value.offset);
-							break;
-						case "Int16LE":
-							rcv_value = msg.readInt16LE(value.offset);
-							break;
-						case "Int16BE":
-							rcv_value = msg.readInt16BE(value.offset);
-							break;
-						case "Int32LE":
-							rcv_value = msg.readInt32LE(value.offset);
-							break;
-						case "Int32BE":
-							rcv_value = msg.readInt32BE(value.offset);
-							break;
-						case "FloatLE":
-							rcv_value = msg.readFloatLE(value.offset);
-							break;
-						case "FloatBE":
-							rcv_value = msg.readFloatBE(value.offset);
-							break;
-						case "DoubleLE":
-							rcv_value = msg.readDoubleLE(value.offset);
-							break;
-						case "DoubleBE":
-							rcv_value = msg.readDoubleBE(value.offset);
-							break;
-						case "String":
-							rcv_value = msg.toString(value.encoding,
-								value.offset,
-								value.offset + value.count);
-							break;
-					}
-				} catch (e) {
-					rcv_value = "n/a";
-				}
+
+				rcv_value = self.valueFromBuffer(msg, value);
+
 				value.current = rcv_value;
 				values.push(value);
 			}
@@ -216,61 +164,94 @@ if (Meteor.isServer) {
 			var msg = new Buffer(self.byteCount());
 			for (var i = 0; i < self.values.length; i++) {
 				var value = self.values[i];
-				try {
-					switch (value.type) {
-						case "UInt8":
-							msg.writeUInt8(+value.current, value.offset);
-							break;
-						case "UInt16LE":
-							msg.writeUInt16LE(+value.current, value.offset);
-							break;
-						case "UInt16BE":
-							msg.writeUInt16BE(+value.current, value.offset);
-							break;
-						case "UInt32LE":
-							msg.writeUInt32LE(+value.current, value.offset);
-							break;
-						case "UInt32BE":
-							msg.writeUInt32BE(+value.current, value.offset);
-							break;
-						case "Int8":
-							msg.writeInt8(+value.current, value.offset);
-							break;
-						case "Int16LE":
-							msg.writeInt16LE(+value.current, value.offset);
-							break;
-						case "Int16BE":
-							msg.writeInt16BE(+value.current, value.offset);
-							break;
-						case "Int32LE":
-							msg.writeInt32LE(+value.current, value.offset);
-							break;
-						case "Int32BE":
-							msg.writeInt32BE(+value.current, value.offset);
-							break;
-						case "FloatLE":
-							msg.writeFloatLE(+value.current, value.offset);
-							break;
-						case "FloatBE":
-							msg.writeFloatBE(+value.current, value.offset);
-							break;
-						case "DoubleLE":
-							msg.writeDoubleLE(+value.current, value.offset);
-							break;
-						case "DoubleBE":
-							msg.writeDoubleBE(+value.current, value.offset);
-							break;
-						case "String":
-							msg.write(value.current,
-								value.offset,
-								value.offset + value.current.length,
-								value.encoding);
-							break;
-					}
-				} catch(e) {
-					console.log(e);
+
+				self.valueToBuffer(msg, value);
+			}
+			return msg;
+		},
+
+		valueFromBuffer: function(msg, value) {
+			var self = this;
+			if(value.type == "String") {
+				rcv_value = self.strBufferValue(msg, value);
+			} else {
+				rcv_value = self.numBufferValue(msg, value, Buffer.prototype['read' + value.type]);
+			}
+			return rcv_value;
+		},
+
+		strBufferValue: function(msg, value) {
+			var bytes_left = msg.length - value.offset;
+			var type_length = type_lengths[value.type];
+			var value_length = value.count * type_length;
+
+			var length = value_length >  bytes_left ? bytes_left : value_length;
+
+			value.current = msg.toString(
+				value.encoding,
+				value.offset,
+				value.offset + length);
+
+			return value.current;
+		},
+
+		numBufferValue: function(msg, value, callback) {
+			var type_length = type_lengths[value.type];
+
+			var new_val = "";
+			for(var i = 0; i <= value.count; i++) {
+				var offset = +value.offset + (i * type_length);
+				var bytes_left = msg.length - offset;
+				if(bytes_left <= type_length) {
+					new_val = new_val.substr(0, new_val.length - 1);
+					break;
+				}
+
+				new_val += callback.call(msg, offset);
+				new_val += "#";
+			}
+
+			return new_val;
+		},
+
+		valueToBuffer: function(msg, value) {
+			var self = this;
+			if(value.type == "String") {
+				mag = self.bufferStrValue(msg, value);
+			} else {
+				msg = self.bufferNumValue(msg, value, Buffer.prototype['write' + value.type]);
+			}
+			return msg;
+		},
+
+		bufferStrValue: function(msg, value) {
+			var bytes_left = msg.length - value.offset;
+			var type_length = type_lengths[value.type];
+			var value_length = value.current.length * type_length;
+
+			var length = value_length >  bytes_left ? bytes_left : value_length;
+
+			msg.write(value.current,
+				value.offset,
+				value.offset + length,
+				value.encoding);
+
+			return msg;
+		},
+
+		bufferNumValue: function(msg, value, callback) {
+			var type_length = type_lengths[value.type];
+			var current_split = value.current.split("#");
+
+			var new_val = "";
+			for(var i = 0; i <= current_split.length; i++) {
+				var offset = +value.offset + (i * type_length);
+				var bytes_left = msg.length - offset;
+				if(bytes_left >= type_length) {
+					callback.call(msg, +current_split[i], offset);
 				}
 			}
+
 			return msg;
 		}
 	});

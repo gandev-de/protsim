@@ -24,6 +24,5 @@ Package.on_test(function(api) {
   api.add_files(["interface.js", "protocol.js", "telegram.js"], ["client", "server"]);
   api.add_files(["protwatch.js", "protdef.js"], ["client", "server"]);
 
-  api.add_files('protdef_server_test.js', ['server']);
-  api.add_files('protdef_client_test.js', ['client']);
+  api.add_files('protsim_test.js', ['server']);
 });

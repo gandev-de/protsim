@@ -16,15 +16,6 @@ if (Meteor.isServer) {
   var dgram = Npm.require("dgram");
   var util = Npm.require('util');
 
-  var identifyTelegram = function(msg, telegrams) {
-    var telegram;
-    for (var i = 0; i < telegrams.length; i++) {
-      //TODO select telegram by telegram identifier
-      telegram = telegrams[i];
-    }
-    return telegram;
-  };
-
   var watchs = {
     pub: undefined
   };
@@ -39,7 +30,7 @@ if (Meteor.isServer) {
   ProtocolWatch.prototype.new_telegram = function(msg) {
     var self = this;
     //identify telegram type
-    var telegram = identifyTelegram(msg, self.protocol.telegrams);
+    var telegram = self.protocol.findTelegramByMessage(msg);
     if (telegram instanceof Telegram) {
       telegram.values = telegram.convertFromBuffer(msg);
       console.log("change..sub: ", self.pub._session.id);

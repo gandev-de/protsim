@@ -57,6 +57,43 @@ Session.set("telegram_selected_def", false);
 
 //************* protdef Template *************
 
+Template.protdef.events(okCancelEvents(
+  '.edit_protocol_name', {
+  ok: function(value) {
+    Protdef.update({
+      _id: Session.get("protocol_selected")
+    }, {
+      '$set': {
+        'name': value
+      }
+    });
+    Session.set('editing_protocol_name', null);
+  },
+
+  cancel: function() {
+    Session.set('editing_protocol_name', null);
+  }
+}));
+
+Template.protdef.events(okCancelEvents(
+  '.edit_telegram_name', {
+  ok: function(value) {
+    var telegram = this;
+
+    Meteor.call('updateTelegram',
+      Session.get("protocol_selected"),
+      telegram._id,
+      telegram.values,
+      value);
+
+    Session.set('editing_telegram_name', null);
+  },
+
+  cancel: function() {
+    Session.set('editing_telegram_name', null);
+  }
+}));
+
 Template.protdef.helpers({
   equal: function(a, b) {
     return a == b;
@@ -79,6 +116,14 @@ Template.protdef.helpers({
         "FloatBE",
         "DoubleLE",
         "DoubleBE"];
+  },
+
+  editing_protocol_name: function() {
+    return Session.equals("editing_protocol_name", this._id) ? true : false;
+  },
+
+  editing_telegram_name: function() {
+    return Session.equals("editing_telegram_name", this._id) ? true : false;
   },
 
   protdef: function() {
@@ -116,6 +161,18 @@ Template.protdef.helpers({
 });
 
 Template.protdef.events({
+  'dblclick .display_protocol_name': function(evt, tmpl) {
+    Session.set('editing_protocol_name', this._id);
+    Deps.flush(); // update DOM before focus
+    activateInput(tmpl.find("#" + this._id + "_protocol_name"));
+  },
+
+  'dblclick .display_telegram_name': function(evt, tmpl) {
+    Session.set('editing_telegram_name', this._id);
+    Deps.flush(); // update DOM before focus
+    activateInput(tmpl.find("#" + this._id + "_telegram_name"));
+  },
+
   'click .protocol': function() {
     var protocol = this;
     if (!Session.equals("protocol_selected", protocol._id)) {
@@ -131,7 +188,7 @@ Template.protdef.events({
 
   'click .add_protocol': function() {
     var protocol = this;
-    Meteor.call("saveProtocol", protocol);
+    Meteor.call("saveProtocol", protocol, true);
   },
 
   'click .remove_protocol': function() {
