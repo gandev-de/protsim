@@ -41,7 +41,6 @@ Template.protwatch.helpers({
 Template.protwatch.events({
   'click .watch_telegram': function(evt, tmpl) {
     var telegram = this;
-
     Session.set("telegram_selected_watch", telegram._id);
   },
 
