@@ -173,14 +173,14 @@ if (Meteor.isServer) {
 		valueFromBuffer: function(msg, value) {
 			var self = this;
 			if(value.type == "String") {
-				rcv_value = self.strBufferValue(msg, value);
+				rcv_value = self._strBufferValue(msg, value);
 			} else {
-				rcv_value = self.numBufferValue(msg, value, Buffer.prototype['read' + value.type]);
+				rcv_value = self._numBufferValue(msg, value, Buffer.prototype['read' + value.type]);
 			}
 			return rcv_value;
 		},
 
-		strBufferValue: function(msg, value) {
+		_strBufferValue: function(msg, value) {
 			var bytes_left = msg.length - value.offset;
 			var type_length = type_lengths[value.type];
 			var value_length = value.count * type_length;
@@ -195,21 +195,19 @@ if (Meteor.isServer) {
 			return value.current;
 		},
 
-		numBufferValue: function(msg, value, callback) {
+		_numBufferValue: function(msg, value, callback) {
 			var type_length = type_lengths[value.type];
 
 			var new_val = "";
-			for(var i = 0; i <= value.count; i++) {
+			for(var i = 0; i < value.count; i++) {
 				var offset = +value.offset + (i * type_length);
 				var bytes_left = msg.length - offset;
-				if(bytes_left <= type_length) {
-					new_val = new_val.substr(0, new_val.length - 1);
-					break;
+				if(bytes_left >= type_length) {
+					new_val += callback.call(msg, offset);
+					new_val += "#";
 				}
-
-				new_val += callback.call(msg, offset);
-				new_val += "#";
 			}
+			new_val = new_val.substr(0, new_val.length - 1);
 
 			return new_val;
 		},
@@ -217,14 +215,13 @@ if (Meteor.isServer) {
 		valueToBuffer: function(msg, value) {
 			var self = this;
 			if(value.type == "String") {
-				mag = self.bufferStrValue(msg, value);
+				self._bufferStrValue(msg, value);
 			} else {
-				msg = self.bufferNumValue(msg, value, Buffer.prototype['write' + value.type]);
+				self._bufferNumValue(msg, value, Buffer.prototype['write' + value.type]);
 			}
-			return msg;
 		},
 
-		bufferStrValue: function(msg, value) {
+		_bufferStrValue: function(msg, value) {
 			var bytes_left = msg.length - value.offset;
 			var type_length = type_lengths[value.type];
 			var value_length = value.current.length * type_length;
@@ -235,24 +232,20 @@ if (Meteor.isServer) {
 				value.offset,
 				value.offset + length,
 				value.encoding);
-
-			return msg;
 		},
 
-		bufferNumValue: function(msg, value, callback) {
+		_bufferNumValue: function(msg, value, callback) {
 			var type_length = type_lengths[value.type];
 			var current_split = value.current.split("#");
 
 			var new_val = "";
-			for(var i = 0; i <= current_split.length; i++) {
+			for(var i = 0; i < current_split.length; i++) {
 				var offset = +value.offset + (i * type_length);
 				var bytes_left = msg.length - offset;
 				if(bytes_left >= type_length) {
 					callback.call(msg, +current_split[i], offset);
 				}
 			}
-
-			return msg;
 		}
 	});
 }
