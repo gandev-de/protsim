@@ -9,9 +9,7 @@ Control.create('TelegramForm', {
       Session.get("telegram_selected_def"),
       _.values(fields));
 
-    //Deps.flush();
-
-    //form.reset();
+    //form.reset(); //TODO weird behavior
   }
 });
 
@@ -49,10 +47,14 @@ var activateInput = function(input) {
   input.select();
 };
 
-Session.set("protocol_selected", false);
-Session.set("telegram_selected_def", false);
+Session.set("protocol_selected", null);
+Session.set("telegram_selected_def", null);
 
-//constant values
+Template.protdef.rendered = function() {
+  var protocol = Protdef.findOne() || {_id: null};
+  //default: select random protocol
+  Session.set("protocol_selected", protocol._id);
+};
 
 
 //************* protdef Template *************
