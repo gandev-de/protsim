@@ -25,6 +25,7 @@ if (Meteor.isServer) {
     self.pub = pub;
     self.protocol = protocol;
 
+    //observe protdef changes
     self.protdef_handle = Protocols.find({_id: protocol._id}).observeChanges({
       changed: function(id, fields) {
         if(fields.telegrams) {
@@ -105,6 +106,8 @@ if (Meteor.isServer) {
 
   ProtocolWatch.prototype.stopWatch = function() {
     var self = this;
+    self.protdef_handle.stop(); //stop observing protdef changes
+
     console.log("stop watch..sub: ", self.pub._session.id);
 
     self.closeConnection();
