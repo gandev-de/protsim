@@ -21,10 +21,26 @@ if (Meteor.isServer) {
   };
 
   ProtocolWatch = function(pub, protocol, watch_id) {
-    this.pub = pub;
-    this.protocol = protocol;
-    this.watch_id = watch_id || protocol._id;
-    this.telegram_counter = 0;
+    var self = this;
+    self.pub = pub;
+    self.protocol = protocol;
+
+    self.protdef_handle = Protocols.find({_id: protocol._id}).observeChanges({
+      changed: function(id, fields) {
+        if(fields.telegrams) {
+          for (var i = 0; i < fields.telegrams.length; i++) {
+            var telegram_json = fields.telegrams[i];
+            var telegram = Telegram.fromJSONValue(telegram_json);
+            self.protocol.telegrams[i] = telegram;
+          }
+        }
+        //TODO update interface
+        console.log("update watched protocol:", id);
+      }
+    });
+
+    self.watch_id = watch_id || protocol._id;
+    self.telegram_counter = 0;
   };
 
   ProtocolWatch.prototype.new_telegram = function(msg) {
