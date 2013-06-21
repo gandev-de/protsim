@@ -50,13 +50,15 @@ var activateInput = function(input) {
 Session.set("protocol_selected", null);
 Session.set("telegram_selected_def", null);
 
-Template.protdef.rendered = function() {
-  if(Session.equals("protocol_selected", null)) {
-    var protocol = Protdef.findOne() || {_id: null};
-    //default: select random protocol
-    Session.set("protocol_selected", protocol._id);
+Protdef.find().observeChanges({
+  added: function(coll, id) {
+    if(Session.equals("protocol_selected", null)) {
+      var protocol = Protdef.findOne() || {_id: null};
+      //default: select random protocol
+      Session.set("protocol_selected", protocol._id);
+    }
   }
-};
+});
 
 //************* protdef Template *************
 
