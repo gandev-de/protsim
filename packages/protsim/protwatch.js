@@ -214,6 +214,20 @@ if (Meteor.isServer) {
 
     endWatch: function(watch_id) {
       end_watch(watch_id);
+    },
+
+    updateTelegramValueHistory: function(protocol_id, telegram_id, value_history) {
+      var protocol = Protocol.fromJSONValue(Protocols.findOne({_id: protocol_id}));
+
+      Protocols.update({
+        _id: protocol_id,
+        'telegrams._id': telegram_id
+      }, {
+        '$set': {
+          'telegrams.$.value_history': value_history
+        }
+      });
+      console.log("telegram history updated: ", telegram_id);
     }
   });
 }
