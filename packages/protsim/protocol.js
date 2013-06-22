@@ -78,13 +78,14 @@ if(Meteor.isServer) {
               values_expected[value.offset] = value.identifier;
             }
           });
+          if(telegram_identifier.length === 0) return false;
 
           var values_received = {};
           _.each(telegram_identifier, function(value) {
             values_received[value.offset] = telegram.valueFromBuffer(msg, value);
           });
 
-          return _.isEqual(values_expected, values_received) && values_expected != {};
+          return _.isEqual(values_expected, values_received);
         });
         return telegram || new Telegram();
       }

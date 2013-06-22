@@ -14,6 +14,15 @@
   position: absolute;
 }
 
+.send_history {
+  position: relative;
+}
+
+.value_history {
+  position: absolute;
+  bottom: 24.75em;
+}
+
 .remove_value, .add_value, .submit_telegram {
   left: 61.5em;
   bottom: 13em;

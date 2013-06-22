@@ -52,9 +52,9 @@ Session.set("telegram_selected_def", null);
 
 Protdef.find().observeChanges({
   added: function(coll, id) {
+    //select random protocol if none selected
     if(Session.equals("protocol_selected", null)) {
       var protocol = Protdef.findOne() || {_id: null};
-      //default: select random protocol
       Session.set("protocol_selected", protocol._id);
     }
   }

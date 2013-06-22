@@ -30,6 +30,7 @@ Telegram = function(options) {
 			current: "n/a"
 		}
 	];
+	this.value_history = options.value_history || [];
 };
 
 Telegram.fromJSONValue = function(value) {
@@ -37,7 +38,8 @@ Telegram.fromJSONValue = function(value) {
 		_id: value._id,
 		name: value.name,
 		type: value.type,
-		values: value.values
+		values: value.values,
+		value_history: value.value_history
 	});
 };
 
@@ -124,7 +126,8 @@ Telegram.prototype = {
 			_id: this._id,
 			name: this.name,
 			type: this.type,
-			values: this.values
+			values: this.values,
+			value_history: this.value_history
 		});
 	},
 
@@ -133,7 +136,8 @@ Telegram.prototype = {
 			_id: this._id,
 			name: this.name,
 			type: this.type,
-			values: this.values
+			values: this.values,
+			value_history: this.value_history
 		};
 	}
 };

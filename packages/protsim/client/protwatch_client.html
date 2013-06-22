@@ -32,7 +32,7 @@
           <th>Offset</th>
           <th>Type</th>
           <th>Name</th>
-          <th>Current Value</th>
+          <th>Send Value</th>
         </tr>
       </thead>
       <tbody>
@@ -41,19 +41,30 @@
           <td>{{offset}}</td>
           <td>{{type}}</td>
           <td>{{name}}</td>
-          <td><input type="text" id="{{name}}" value="{{current}}"></td>
+          <td><input type="text" id="send_{{name}}" value="{{current}}"></td>
         </tr>
         {{/each}}
       </tbody>
     </table>
     <button class="btn" type="button" id="send">send</button>
+    <div class="send_history">
+      <div class="value_history pagination pagination-mini">
+        <ul>
+          <li><a class="history_value_left">«</a></li>
+          {{#each value_history}}
+            <li class="{{disabled_history_value ../value_history}}"><a class="history_value">{{history_count ../value_history}}</a></li>
+          {{/each}}
+          <li><a class="history_value_right">»</a></li>
+        </ul>
+      </div>
+    </div>
     {{/with}}
   </div>
 
   <div class="span5 receive">
     {{#with received}}
     <div class="page-header">
-      <h3>Receive <small>[{{count}}]</small></h>
+      <h3>Receive <small>[{{count}}] [{{value.name}}]</small></h>
     </div>
     {{#if count}}
     <table class="table">
@@ -62,19 +73,7 @@
           <th>Offset</th>
           <th>Type</th>
           <th>Name</th>
-          <th>Current Value
-            <div class="pagination pagination-centered">
-              <ul>
-                <li><a href="#">«</a></li>
-                <li><a href="#">1</a></li>
-                <li><a href="#">2</a></li>
-                <li><a href="#">3</a></li>
-                <li><a href="#">4</a></li>
-                <li><a href="#">5</a></li>
-                <li><a href="#">»</a></li>
-             </ul>
-           </div>
-         </th>
+          <th>Current Value</th>
         </tr>
       </thead>
       <tbody>
