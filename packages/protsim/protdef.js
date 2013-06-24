@@ -20,6 +20,40 @@ if (Meteor.isClient) {
 if (Meteor.isServer) {
 	Protocols = new Meteor.Collection("protocols");
 
+	var saveProtocol = function(protocol, duplicate) {
+		protocol = protocol || new Protocol();
+		duplicate = duplicate || false;
+
+		var interface_json = protocol.interface.toJSONValue();
+		interface_json._id = new Meteor.Collection.ObjectID()._str;
+
+		var telegrams_json = [];
+		protocol.telegrams.forEach(function(telegram) {
+			var telegram_json = telegram.toJSONValue();
+			telegram_json._id = new Meteor.Collection.ObjectID()._str;
+			telegrams_json.push(telegram_json);
+		});
+
+		var protocol_json = protocol.toJSONValue();
+		protocol_json.interface = interface_json;
+		protocol_json.telegrams = telegrams_json;
+
+		if (protocol._id && !duplicate) {
+			Protocols.update({
+				_id: protocol._id
+			}, protocol_json);
+			console.log("protocol updated: ", protocol_json.name);
+		} else {
+			Protocols.insert(_.omit(protocol_json, '_id'));
+			console.log("protocol added: ", protocol_json.name);
+		}
+	};
+
+	//init plain protsim instance with default protocol
+    if(Protocols.find().count() === 0) {
+		saveProtocol(new Protocol());
+	}
+
 	Meteor.publish("protdef", function() {
 		return Protocols.find(); //order matters!
 	});
@@ -29,29 +63,7 @@ if (Meteor.isServer) {
 			protocol = protocol || new Protocol();
 			duplicate = duplicate || false;
 
-			var interface_json = protocol.interface.toJSONValue();
-			interface_json._id = new Meteor.Collection.ObjectID()._str;
-
-			var telegrams_json = [];
-			protocol.telegrams.forEach(function(telegram) {
-				var telegram_json = telegram.toJSONValue();
-				telegram_json._id = new Meteor.Collection.ObjectID()._str;
-				telegrams_json.push(telegram_json);
-			});
-
-			var protocol_json = protocol.toJSONValue();
-			protocol_json.interface = interface_json;
-			protocol_json.telegrams = telegrams_json;
-
-			if (protocol._id && !duplicate) {
-				Protocols.update({
-					_id: protocol._id
-				}, protocol_json);
-				console.log("protocol updated: ", protocol_json.name);
-			} else {
-				Protocols.insert(_.omit(protocol_json, '_id'));
-				console.log("protocol added: ", protcol_json.name);
-			}
+			saveProtocol(protocol, duplicate);
 		},
 
 		updateTelegram: function(protocol_id, telegram_id, values, telegram_name) {
