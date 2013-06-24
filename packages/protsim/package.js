@@ -14,7 +14,7 @@ Package.on_use(function(api) {
   api.add_files(["client/protwatch_client.html", "client/protwatch_client.js"], ["client"]);
 
   //sample protocol definitions
-  api.add_files(["protocols/modbus.js"], ["server"]);
+  //api.add_files(["protocols/modbus.js"], ["server"]);
 });
 
 Package.on_test(function(api) {

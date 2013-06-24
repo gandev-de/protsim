@@ -89,15 +89,13 @@ if (Meteor.isServer) {
          ]
       });
 
-      var prot = new Protocol({
-         name: "modbus",
-         telegrams: [tel1, tel2]
-      });
+      //TODO overhaul definition 
+      // var prot = new Protocol({
+      //    name: "modbus",
+      //    telegrams: [tel1, tel2]
+      // });
 
-      if (!Protocols.findOne({
-         name: "modbus"
-      }))
-         Meteor.call("saveProtocol", prot);
-
+      // if (!Protocols.findOne({name: "modbus"}))
+      //    Meteor.call("saveProtocol", prot);
    });
 }
