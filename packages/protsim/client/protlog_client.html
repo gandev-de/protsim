@@ -1,0 +1,32 @@
+<template name="protlog">
+	<div class="page-header">
+	  <h2>Protocol Log <small>[{{protocol.name}}]</small></h2>
+	</div>
+	<div class="row protlog">
+		<div class="span12">
+    		<input type="checkbox" {{logging}}/>
+    		<button class="btn btn-primary" type="button" id="start_logging">log</button>
+			<input type="button" class="btn btn-small" id="clear_log" value="Clear">
+			<table class="table table-hover">
+			    <thead>
+			        <tr>
+			        	<th>#</th>
+			        	<th>Protocol</th>
+			        	<th>Telegram</th>
+			        	<th>Raw Value</th>
+			        </tr>
+			      </thead>
+			    <tbody>
+				{{#each protlog}}
+				<tr>
+					<td>{{timestamp}}</td>
+					<td>{{protlog_protocol}}</td>
+					<td>{{protlog_telegram}}</td>
+					<td>{{raw_value}}</td>
+				</tr>
+				{{/each}}
+			  </tbody>
+			</table>
+		</div>
+	</div>
+</template>
