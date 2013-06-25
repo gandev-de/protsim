@@ -60,18 +60,7 @@ function historyIndex(value_history, history_value) {
     return index;
 }
 
-function loadHistoryValues(tmpl, history_value) {
-  var value_names = _.keys(history_value);
-  _.each(value_names, function(name) {
-    var value_input = tmpl.find('#send_' + name);
-    if(value_input)
-      value_input.value = history_value[name];
-  });
-}
-
-Template.protwatch.rendered = function() {
-  var tmpl = this;
-  Deps.autorun(function() {
+function loadHistoryValues(tmpl) {
     var protocol_id = Session.get("protocol_selected");
     var protocol = Protdef.findOne({_id: protocol_id});
     if(protocol) {
@@ -80,13 +69,43 @@ Template.protwatch.rendered = function() {
       var history_value = telegram.value_history[Session.get("selected_history_value")];
 
       if(history_value) {
-        Deps.afterFlush(function() {
-          loadHistoryValues(tmpl, history_value);
+        var value_names = _.keys(history_value);
+        _.each(value_names, function(name) {
+          var value_input = tmpl.find('#send_' + name);
+          if(value_input)
+            value_input.value = history_value[name];
         });
       }
     }
-  });
-};
+  }
+
+// function loadHistoryValues(tmpl, history_value) {
+//   var value_names = _.keys(history_value);
+//   _.each(value_names, function(name) {
+//     var value_input = tmpl.find('#send_' + name);
+//     if(value_input)
+//       value_input.value = history_value[name];
+//   });
+// }
+
+// Template.protwatch.rendered = function() {
+//   var tmpl = this;
+//   Deps.autorun(function() {
+//     var protocol_id = Session.get("protocol_selected");
+//     var protocol = Protdef.findOne({_id: protocol_id});
+//     if(protocol) {
+//       var telegram_id = Session.get("telegram_selected_watch");
+//       var telegram = protocol.findTelegramById(telegram_id);
+//       var history_value = telegram.value_history[Session.get("selected_history_value")];
+
+//       if(history_value) {
+//         Deps.afterFlush(function() {
+//           loadHistoryValues(tmpl, history_value);
+//         });
+//       }
+//     }
+//   });
+// };
 
 Template.protwatch.events({
   'click .watch_telegram': function(evt, tmpl) {
@@ -127,6 +146,7 @@ Template.protwatch.events({
 
   'click .history_value': function(evt, tmpl) {
     Session.set("selected_history_value", +evt.currentTarget.innerText);
+    loadHistoryValues(tmpl);
   },
 
   'click .history_value_left': function(evt, tmpl) {
@@ -137,6 +157,7 @@ Template.protwatch.events({
     } else {
       Session.set("selected_history_value", history_value_index - 1);
     }
+    loadHistoryValues(tmpl);
   },
 
   'click .history_value_right': function(evt, tmpl) {
@@ -147,6 +168,7 @@ Template.protwatch.events({
     } else {
       Session.set("selected_history_value", history_value_index + 1);
     }
+    loadHistoryValues(tmpl);
   },
 
   'click #loopback': function(evt, tmpl) {
