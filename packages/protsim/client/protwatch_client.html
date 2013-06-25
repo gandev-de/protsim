@@ -47,16 +47,14 @@
       </tbody>
     </table>
     <button class="btn" type="button" id="send">send</button>
-    <div class="send_history">
-      <div class="value_history pagination pagination-mini">
-        <ul>
-          <li><a class="history_value_left">«</a></li>
-          {{#each value_history}}
-            <li class="{{disabled_history_value ../value_history}}"><a class="history_value">{{history_count ../value_history}}</a></li>
-          {{/each}}
-          <li><a class="history_value_right">»</a></li>
-        </ul>
-      </div>
+    <div class="value_history pagination pagination-mini">
+      <ul>
+        <li><a class="history_value_left">«</a></li>
+        {{#each value_history}}
+          <li class="{{disabled_history_value ../value_history}}"><a class="history_value">{{history_count ../value_history}}</a></li>
+        {{/each}}
+        <li><a class="history_value_right">»</a></li>
+      </ul>
     </div>
     {{/with}}
   </div>

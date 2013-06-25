@@ -6,7 +6,8 @@ if (Meteor.isClient) {
 	Meteor.pages({
 		'/': {to: 'protdef', nav: 'definition'},
 		'/definition': {to: 'protdef', nav: 'definition'},
-		'/watch': {to: 'protwatch', nav:'watch'}
+		'/watch': {to: 'protwatch', nav:'watch'},
+		'/log': {to: 'protlog', nav:'log'}
 	}, {
 		defaults: {
 			layout: 'layout'

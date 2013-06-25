@@ -80,7 +80,9 @@ Template.protwatch.rendered = function() {
       var history_value = telegram.value_history[Session.get("selected_history_value")];
 
       if(history_value) {
-        loadHistoryValues(tmpl, history_value);
+        Deps.afterFlush(function() {
+          loadHistoryValues(tmpl, history_value);
+        });
       }
     }
   });
@@ -161,6 +163,7 @@ Template.protwatch.events({
       _id: this._id
     });
     if (watch) {
+      Session.set("logging_active", false);
       Meteor.call("endWatch", this._id);
     } else {
       Meteor.call("startWatch", this._id, this);
