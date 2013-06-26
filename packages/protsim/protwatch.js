@@ -52,13 +52,15 @@ if (Meteor.isServer) {
       telegram.values = telegram.convertFromBuffer(msg);
       console.log("change..sub: ", self.pub._session.id);
       //change subscription
-      self.pub.changed("protwatch", self.watch_id, {
+      var new_content = {
         count: ++self.telegram_counter,
         raw: msg.toString(),
         value: EJSON.stringify(telegram)
-      });
+      };
+
+      self.pub.changed("protwatch", self.watch_id, new_content);
       //save last telegram for new subscriptions
-      self.last_telegram = telegram;
+      self.last_content = new_content;
     }
   };
 
@@ -100,7 +102,8 @@ if (Meteor.isServer) {
     console.log("initial publish..sub: ", self.pub._session.id);
 
     //add new watch to subscription
-    self.pub.added("protwatch", self.watch_id, self.last_telegram);
+    self.pub.added("protwatch", self.watch_id, self.last_content);
+
     self.pub.ready();
   };
 
