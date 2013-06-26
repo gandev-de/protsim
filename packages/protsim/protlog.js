@@ -19,11 +19,11 @@ if(Meteor.isServer) {
 	});
 
 	Meteor.methods({
-		addLogEntry: function(protocol_id, telegram_id, raw_value) {
+		addLogEntry: function(protocol_id, telegram, raw_value) {
 			Protlog.insert({
 				timestamp: new Date(),
 				protocol_id: protocol_id,
-				telegram_id: telegram_id,
+				telegram: telegram,
 				raw_value: raw_value
 			});
 		},

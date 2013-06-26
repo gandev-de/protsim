@@ -65,3 +65,17 @@
 .protocol.watch_active {
     background-color: rgb(148, 172, 148);
 }
+
+/* log */
+
+.popover_telegram_values {
+  position: absolute;
+  border: 1px;
+  border-radius: 1em 1em 1em 1em;
+  border-color: black;
+  border-style: solid;
+  background-color: white;
+  padding: 0.5em; /* place between border and content*/
+  margin: 0.5em; /* place between border and environment*/
+  left: 50%;
+}

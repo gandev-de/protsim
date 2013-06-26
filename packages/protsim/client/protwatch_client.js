@@ -79,33 +79,10 @@ function loadHistoryValues(tmpl) {
     }
   }
 
-// function loadHistoryValues(tmpl, history_value) {
-//   var value_names = _.keys(history_value);
-//   _.each(value_names, function(name) {
-//     var value_input = tmpl.find('#send_' + name);
-//     if(value_input)
-//       value_input.value = history_value[name];
-//   });
-// }
-
-// Template.protwatch.rendered = function() {
-//   var tmpl = this;
-//   Deps.autorun(function() {
-//     var protocol_id = Session.get("protocol_selected");
-//     var protocol = Protdef.findOne({_id: protocol_id});
-//     if(protocol) {
-//       var telegram_id = Session.get("telegram_selected_watch");
-//       var telegram = protocol.findTelegramById(telegram_id);
-//       var history_value = telegram.value_history[Session.get("selected_history_value")];
-
-//       if(history_value) {
-//         Deps.afterFlush(function() {
-//           loadHistoryValues(tmpl, history_value);
-//         });
-//       }
-//     }
-//   });
-// };
+Template.protwatch.rendered = function() {
+  var tmpl = this;
+  loadHistoryValues(tmpl);
+};
 
 Template.protwatch.events({
   'click .watch_telegram': function(evt, tmpl) {

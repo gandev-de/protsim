@@ -15,13 +15,37 @@
 			        	<th>Telegram</th>
 			        	<th>Raw Value</th>
 			        </tr>
-			      </thead>
+			    </thead>
+			    {{#with mouseover_log_entry}}
+				<div class="popover_telegram_values">
+					<table class="table">
+				      <thead>
+				        <tr>
+				          <th>Offset</th>
+				          <th>Type</th>
+				          <th>Name</th>
+				          <th>Value</th>
+				        </tr>
+				      </thead>
+				      <tbody>
+				        {{#each telegram.values}}
+				        <tr>
+				          <td>{{offset}}</td>
+				          <td>{{type}}</td>
+				          <td>{{name}}</td>
+				          <td>{{current}}</td>
+				        </tr>
+				        {{/each}}
+				      </tbody>
+				    </table>
+				</div>
+				{{/with}}
 			    <tbody>
 				{{#each protlog}}
-				<tr>
-					<td>{{timestamp}}</td>
+				<tr class="log_entry" id="{{_id}}">
+					<td style="width: 20%">{{timestamp_formatted timestamp}}</td>
 					<td>{{protlog_protocol}}</td>
-					<td>{{protlog_telegram}}</td>
+					<td>{{telegram.name}}</td>
 					<td>{{raw_value}}</td>
 				</tr>
 				{{/each}}

@@ -14,6 +14,9 @@ Package.on_use(function(api) {
   api.add_files(["client/protwatch_client.html", "client/protwatch_client.js"], ["client"]);
   api.add_files(["client/protlog_client.html", "client/protlog_client.js"], ["client"]);
 
+  //
+  api.add_files(["lib/date.js"], ["client", "server"]);
+
   //sample protocol definitions
   //api.add_files(["protocols/modbus.js"], ["server"]);
 });

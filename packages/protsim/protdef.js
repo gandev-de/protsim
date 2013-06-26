@@ -21,6 +21,8 @@ if (Meteor.isServer) {
 	Protocols = new Meteor.Collection("protocols");
 
 	var saveProtocol = function(protocol, duplicate) {
+		//TODO try to persist embedded ejson types
+
 		protocol = protocol || new Protocol();
 		duplicate = duplicate || false;
 
