@@ -123,6 +123,14 @@ Template.protdef.helpers({
         "DoubleBE"];
   },
 
+  interface_types: function() {
+    return ["udp", "tcp"];
+  },
+
+  interface_modes: function() {
+    return ["client", "server"];
+  },
+
   editing_protocol_name: function() {
     return Session.equals("editing_protocol_name", this._id) ? true : false;
   },
@@ -210,6 +218,27 @@ Template.protdef.events({
         _id: protocol._id
       });
     }
+  },
+
+  'click .switch_interface': function(evt, tmpl) {
+    var mode_value = '';
+    var type = tmpl.find("#interface_type");
+    var type_value = type.options[type.selectedIndex].text;
+
+    if(type_value != "udp") {
+      var mode = tmpl.find("#interface_mode");
+      mode_value = mode.options[mode.selectedIndex].text;
+    }
+
+    Protdef.update({
+      _id: Session.get("protocol_selected")
+    }, {
+      '$set': {
+        'interface.name': type_value + "_" + mode_value ,
+        'interface.transport.mode': mode_value,
+        'interface.transport.type': type_value
+      }
+    });
   },
 
   'click .add_telegram': function() {
@@ -352,7 +381,7 @@ Template.interface.events({
     Session.set('editing_remote_ip', this._id);
     Deps.flush(); // update DOM before focus
     activateInput(tmpl.find("#" + this._id + "_remote_ip"));
-  }
+  },
 });
 
 Template.interface.events(okCancelEvents(

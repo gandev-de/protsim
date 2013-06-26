@@ -15,6 +15,7 @@ if (Meteor.isClient) {
 if (Meteor.isServer) {
   var dgram = Npm.require("dgram");
   var util = Npm.require('util');
+  var net = Npm.require('net');
 
   var watchs = {
     pub: undefined
@@ -78,6 +79,46 @@ if (Meteor.isServer) {
         });
         self.connection = udp;
         break;
+      case "tcp":
+        var tcp;
+        if (transport.mode == "client") {
+          tcp = net.connect({port: transport.remote_port,
+            host: transport.remote_ip}, function() {
+            //'connect' listener TODO
+            console.log('client connected');
+            self.connection = tcp;
+          });
+
+          tcp.on('end', function() {
+            console.log('client disconnected');
+          });
+
+          tcp.on("data", function(msg) {
+            console.log("tcp message received: " + msg.toString());
+            self.new_telegram(msg);
+          });
+        } else if(transport.mode == "server") {
+          tcp = net.createServer(function(c) {
+            //'connection' listener
+            console.log('server connected');
+
+            c.on('end', function() {
+              console.log('server disconnected');
+            });
+
+            c.on('data', function(msg) {
+              console.log("tcp message received: " + msg.toString());
+              self.new_telegram(msg);
+            });
+            self.connection = c;
+          });
+
+          tcp.listen(transport.local_port, function() {
+            //'listening' listener
+            console.log('server bound');
+          });
+        }
+        break;
       default:
         //TODO
     }
@@ -91,6 +132,14 @@ if (Meteor.isServer) {
       case "udp":
         var udp = self.connection;
         if (udp && udp._bound) udp.close();
+        break;
+      case "tcp":
+        var tcp = self.connection;
+        if (transport.mode == "server" && tcp) {
+          tcp.close();
+        } else if (transport.mode == "client" && tcp) {
+          tcp.end();
+        }
         break;
       default:
         //TODO
@@ -186,6 +235,11 @@ if (Meteor.isServer) {
         case "udp":
           var udp = watch.connection;
           udp.send(msg, 0, msg.length, transport.remote_port, transport.remote_ip);
+          console.log("message sended: " + msg.toString());
+          break;
+        case "tcp":
+          var tcp = watch.connection;
+          tcp.write(msg.toString());
           console.log("message sended: " + msg.toString());
           break;
         default:

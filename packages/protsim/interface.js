@@ -1,7 +1,7 @@
 Interface = function(options) {
 	options = options || {};
   this._id = options._id;
-	this.name = options.name || "udp-default";
+	this.name = options.name || "udp_";
 	this.transport = options.transport || {type: "udp"};
   //transport default values
 	switch(this.transport.type) {

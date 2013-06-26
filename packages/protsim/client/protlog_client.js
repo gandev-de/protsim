@@ -56,7 +56,7 @@ Template.protlog.events({
 
 				//TODO logging to other destination
 
-				Meteor.call("addLogEntry", protocol_id, telegram, fields.raw);
+				Meteor.call("addLogEntry", id, telegram, fields.raw);
 			}
 		});
 		Session.set("logging_active", true);
