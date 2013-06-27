@@ -13,6 +13,7 @@ Package.on_use(function(api) {
   api.add_files(["client/protdef_client.html", "client/protdef_client.js"], ["client"]);
   api.add_files(["client/protwatch_client.html", "client/protwatch_client.js"], ["client"]);
   api.add_files(["client/protlog_client.html", "client/protlog_client.js"], ["client"]);
+  api.add_files(["client/protconversation_client.html", "client/protconversation_client.js"], ["client"]);
 
   //
   api.add_files(["lib/date.js"], ["client", "server"]);

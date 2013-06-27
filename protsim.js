@@ -7,7 +7,8 @@ if (Meteor.isClient) {
 		'/': {to: 'protdef', nav: 'definition'},
 		'/definition': {to: 'protdef', nav: 'definition'},
 		'/watch': {to: 'protwatch', nav:'watch'},
-		'/log': {to: 'protlog', nav:'log'}
+		'/log': {to: 'protlog', nav:'log'},
+		'/conversation': {to: 'protconversation', nav:'conversation'}
 	}, {
 		defaults: {
 			layout: 'layout'
