@@ -16,122 +16,95 @@ Template.protconversation.rendered = function() {
 			_id: Session.get("protocol_selected")
 		});
 
-		//todo evaluate if really neccessary to delete all conversations first
-		d3.select(svg).select(".path").selectAll("path").remove();
-		d3.select(svg).select(".endpoints").selectAll("rect").remove();
-
-		// var callout = d3.select(svg)
-		// 	.select("circle.callout")
-		// 	.transition()
-		// 	.duration(250)
-		// 	.ease("cubic-out");
-
 		if (protocol && protocol.conversation.length > 0) {
-			// Draw a circle for each connection
-			var posIdx = -1;
-			var updatePositions = function(group) {
-				group.attr("id", function(pos) {
-					return pos.hasOwnProperty("idx") ? pos.idx : -1;
-				})
-					.attr("x", function(pos) {
-					return pos.x;
-				})
-					.attr("y", function(pos) {
-					return pos.y;
-				})
-					.attr("class", function(pos) {
-					return "pos";
-				})
-					.style('opacity', function(pos) {
-					return 1;
-				});
-			};
+			var markerWidth = 6,
+			    markerHeight = 6,
+			    cRadius = 30, // play with the cRadius value
+			    refX = cRadius + (markerWidth * 2),
+			    refY = -Math.sqrt(cRadius),
+			    drSub = cRadius + refY;
 
-			var protocolPoints = [];
-			for (var i = 0; i < protocol.conversation.length; i++) {
-				var conn = protocol.conversation[i];
-				if (i === 0)
-					protocolPoints.push(conn.from);
-				protocolPoints.push(_.extend(conn.to, {
-					idx: conn.idx
-				}));
-			}
+			var participants = [
+				{name: "Initiator", x: 5, y: 5}, 
+				{name: "Receiver", x: 300, y: 5}
+			];
 
-			var endpoints = d3.select(svg)
-				.select(".endpoints")
-				.selectAll("endpoints")
-				.data(protocolPoints, function(conn) {
-				return conn.idx;
-			});
+			//rect participants
+			svg.append("svg:g").selectAll("test").data(participants).enter().append("svg:rect")
+			    .attr("x", function(d) { return d.x;})
+			    .attr("y", function(d) { return d.y;})
+			    .attr("height", function() { return 50;})
+			    .attr("width", function() { return 100;})
 
-			updatePositions(endpoints.enter().append("svg:rect")
-				.attr("width", function(d, i) {
-				return 100;
-			})
-				.attr("height", function(d, i) {
-				return 40;
-			}));
+			//text participants
+			var text = svg.append("svg:g").selectAll("g")
+			    .data(participants)
+			    .enter().append("svg:text").attr("x", function(d) { return d.x + 20; })
+			    .attr("y", function(d) { return d.y + 30; })
+			    .attr("fill", "white")
+			    .text(function (d) {return d.name;});
 
+			//horizontal lines for endpoints
+			var lines = svg.append("svg:g")
+			          .selectAll("lines")
+			          .data(participants)
+			          .enter()
+			          .append("svg:line")
+			          .attr("x1", function(d) {return d.x + 50;})
+			          .attr("y1", function(d) {return d.y + 50;})
+			          .attr("x2", function(d) {return d.x + 50;})
+			          .attr("y2", function(d) {return d.y + 500;})
+			          .attr("style", "stroke-dasharray: 9, 5;stroke: blue; stroke-width: 3");
 
-			// updatePositions(connections.transition().duration(250).ease("cubic-out"));
-			// connections.exit().transition().duration(250).attr("r", 0).remove();
+			//path between participants
 
-			//Draw a conversation
-			var updatePath = function(group) {
-				var line = d3.svg.line()
-					.x(function(d) {
-					return d.x + 50;
-				})
-					.y(function(d) {
-					return d.y + 25;
-				})
-					.interpolate("linear");
+			// Per-type markers, as they don't inherit styles.
+			svg.append("svg:defs").selectAll("marker")
+			.data(["send", "receive"])
+			.enter().append("svg:marker")
+			.attr("id", String)
+			.attr("viewBox", "0 -5 10 10")
+			.attr("markerWidth", markerWidth)
+			.attr("markerHeight", markerHeight)
+			.attr("orient", "auto")
+			.append("svg:path")
+			.attr("d", "M0,-5L10,0L0,5")
+			.attr("style", "fill: red;");
 
-				group.attr("d", function(d) {
-					return line(d);
-				});
-			};
+			//add conversation path
+			var path_y_offset = 0;
+			var path = svg.append("svg:g").selectAll("path")
+			.data(protocol.conversation)
+			.enter()
+			.append("svg:path")
+			.attr("class", function (d) {return "link " + d.type;})
+			.attr("marker-end", function (d) {return "url(#" + d.type + ")";})
+			.attr("d", function(d) {
+			    var y = 100 + path_y_offset;
+			    path_y_offset += 20;
+			    
+			    if(d.type == "send") {
+			        return "M 55 " + y + " L 340 " + y;
+			    } else {
+			        return "M 350 " + y + " L 65 " + y;
+			}})
+			.attr("style", 'stroke:red; stroke-width: 2; fill: none');
 
-			var protocolConversation = [];
-			var currentEndPos;
-			protocol.conversation.forEach(function(conn) {
-				var conversationPoints = [conn.from, conn.to];
-				currentEndPos = _.extend(conn.to, {
-					idx: conn.idx
-				});
-				protocolConversation.push(conversationPoints);
-			});
-
-			//selection based last tmp connection
-			// if(currentPos) {
-			//   protocolConversation.push([currentEndPos, currentPos]);
-			// }
-
-			var path = d3.select(svg)
-				.select(".flow")
-				.selectAll("flow")
-				.data(protocolConversation);
-
-			updatePath(path.enter().append("svg:path"));
-			path.exit();
-
-			// Draw a dashed circle around the currently selected pos, if any, or at the end pos
-			// var calloutX, calloutY;
-			// if(protocol.conversation[selectedPos]) {
-			//   calloutX = protocol.conversation[selectedPos].to.x;
-			//   calloutY = protocol.conversation[selectedPos].to.y;
-			// } else {
-			//   calloutX = currentEndPos.x;
-			//   calloutY = currentEndPos.y;
-			//   Session.set("selectedPos", currentEndPos.idx);
-			// }
-
-			// callout.attr("cx", calloutX)
-			// .attr("cy", calloutY)
-			// .attr("r", 20)
-			// .attr("class", "callout")
-			// .attr("display", '');
-		} else
-			callout.attr("display", 'none');
+			//text telegram name
+			var path_text_y_offset = 0;			
+			var text = svg.append("svg:g").selectAll("g")
+			    .data(protocol.conversation)
+			    .enter()
+			    .append("svg:text")
+			    .attr("x", function(d) {
+			    	return 150; //TODO calculate
+			 	})
+			    .attr("y", function(d) {
+			    	var y = 100 + path_text_y_offset;			    	
+			    	path_text_y_offset += 15;
+			    	return y; })
+			    .attr("fill", "white")
+			    .text(function (d) { return d.telegram.name; });			
+		}
 	});
 };
