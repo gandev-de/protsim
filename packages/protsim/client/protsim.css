@@ -79,3 +79,13 @@
   margin: 0.5em; /* place between border and environment*/
   left: 50%;
 }
+
+/* conversation */
+
+.conversation path {
+    stroke-width: 5px;
+    stroke-dasharray: 9, 5;
+    stroke-opacity: .8;
+    fill: none;
+    stroke: black;
+}

@@ -1,11 +1,5 @@
 if (Meteor.isClient) {
-  Protwatch = new Meteor.Collection("protwatch", {
-    transform: function(coll) {
-      if (coll && coll.value)
-        coll.value = EJSON.parse(coll.value);
-      return coll;
-    }
-  });
+  Protwatch = new Meteor.Collection("protwatch");
 
   //Deps.autorun(function() {
   Meteor.subscribe("protwatch");
@@ -56,7 +50,8 @@ if (Meteor.isServer) {
       var new_content = {
         count: ++self.telegram_counter,
         raw: msg.toString(),
-        value: EJSON.stringify(telegram)
+        raw_json: msg.toJSON(),
+        value: telegram
       };
 
       self.pub.changed("protwatch", self.watch_id, new_content);
@@ -117,6 +112,7 @@ if (Meteor.isServer) {
             //'listening' listener
             console.log('server bound');
           });
+          self.server = tcp;
         }
         break;
       default:
@@ -136,7 +132,8 @@ if (Meteor.isServer) {
       case "tcp":
         var tcp = self.connection;
         if (transport.mode == "server" && tcp) {
-          tcp.close();
+          tcp.end();
+          self.server.close();
         } else if (transport.mode == "client" && tcp) {
           tcp.end();
         }
@@ -171,6 +168,7 @@ if (Meteor.isServer) {
 
   //Receive
 
+  //watch_id currently always should be the protocol id
   var start_watch = function(watch_id, protocol) {
     console.log("start watch..id: ", watch_id, "..sub:", watchs.pub._session.id);
 

@@ -47,20 +47,12 @@ Template.protlog.events({
 			logging_handle.stop();
 		}
 
-		logging_handle = Protwatch.find().observeChanges({
-			changed: function(id, fields) {
-				var received = fields;
-				var telegram;
-				if(received.value) {
-					telegram = EJSON.parse(fields.value);
-				} else {
-					received = Protwatch.findOne({_id: id});
-					telegram = received.value;
+		logging_handle = Protwatch.find().observe({
+			changed: function(newDocument, oldDocument) {
+				if(newDocument.value) {
+					//TODO logging to other destination
+					Meteor.call("addLogEntry", newDocument._id, newDocument.value, newDocument.raw);
 				}
-
-				//TODO logging to other destination
-
-				Meteor.call("addLogEntry", id, telegram, received.raw);
 			}
 		});
 		Session.set("logging_active", true);

@@ -50,11 +50,11 @@ var activateInput = function(input) {
 Session.set("protocol_selected", null);
 Session.set("telegram_selected_def", null);
 
-Protdef.find().observeChanges({
-  added: function(coll, id) {
+Protdef.find().observe({
+  added: function(doc) {
     //select random protocol if none selected
     if(Session.equals("protocol_selected", null)) {
-      var protocol = Protdef.findOne() || {_id: null};
+      var protocol = doc || {_id: null};
       Session.set("protocol_selected", protocol._id);
     }
   }
@@ -208,12 +208,7 @@ Template.protdef.events({
     var protocol = this;
     var protocol_count = Protdef.find().count();
     if(protocol_count > 1) {
-      var watch = Protwatch.findOne({
-        _id: protocol._id
-      });
-      if (watch) {
-        Meteor.call("endWatch", protocol._id);
-      }
+      endWatch(protocol._id);
       Protdef.remove({
         _id: protocol._id
       });
@@ -230,8 +225,11 @@ Template.protdef.events({
       mode_value = mode.options[mode.selectedIndex].text;
     }
 
+    var protocol_id = Session.get("protocol_selected");
+    endWatch(protocol_id);
+
     Protdef.update({
-      _id: Session.get("protocol_selected")
+      _id: protocol_id
     }, {
       '$set': {
         'interface.name': type_value + "_" + mode_value ,
@@ -348,6 +346,16 @@ function swapValue(telegram, value_name, direction) {
     telegram.values);
 }
 
+//TODO move to protwatch
+function endWatch(protocol_id) {
+  var watch = Protwatch.findOne({
+    _id: protocol_id
+  });
+  if (watch) {
+    Meteor.call("endWatch", protocol_id);
+  }
+}
+
 //************* interface Template *************
 
 Template.interface.helpers({
@@ -381,7 +389,7 @@ Template.interface.events({
     Session.set('editing_remote_ip', this._id);
     Deps.flush(); // update DOM before focus
     activateInput(tmpl.find("#" + this._id + "_remote_ip"));
-  },
+  }
 });
 
 Template.interface.events(okCancelEvents(

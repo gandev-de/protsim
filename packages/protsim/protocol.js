@@ -5,6 +5,16 @@ Protocol = function(options) {
   this.interface = options.interface || new Interface();
   this.telegrams = options.telegrams || [new Telegram()];
   this.test_responses = options.test_responses || [];
+  //test conversation data
+  this.conversation = [{
+    from: {x: 50, y: 50},
+    to: {x: 300, y: 50},
+    idx: 0
+  },{
+    from: {x: 300, y: 50},
+    to: {x: 50, y: 200},
+    idx: 1
+  }];
 };
 
 Protocol.fromJSONValue = function(value) {
