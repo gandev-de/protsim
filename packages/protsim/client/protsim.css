@@ -56,6 +56,14 @@
     width: 80px;
 }
 
+.span1.display {
+  cursor: pointer;
+}
+
+.label {
+  cursor: pointer;
+}
+
 /* watch */
 
 .watch_telegram.selected {
@@ -82,10 +90,6 @@
 
 /* conversation */
 
-.conversation path {
-    stroke-width: 5px;
-    stroke-dasharray: 9, 5;
-    stroke-opacity: .8;
-    fill: none;
-    stroke: black;
+.select_conversation.selected {
+    background-color: rgb(147, 168, 35);
 }

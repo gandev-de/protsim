@@ -272,8 +272,6 @@ if (Meteor.isServer) {
     },
 
     updateTelegramValueHistory: function(protocol_id, telegram_id, value_history) {
-      var protocol = Protocol.fromJSONValue(Protocols.findOne({_id: protocol_id}));
-
       Protocols.update({
         _id: protocol_id,
         'telegrams._id': telegram_id
@@ -283,6 +281,18 @@ if (Meteor.isServer) {
         }
       });
       console.log("telegram history updated: ", telegram_id);
+    },
+
+    updateProtocolConversation: function(protocol_id, conversation) {
+      Protocols.update({
+        _id: protocol_id,
+        'conversations.name': conversation.name
+      }, {
+        '$set': {
+          'conversations.$.conversation': conversation.conversation
+        }
+      });
+      console.log("conversation updated: ", conversation.name);
     }
   });
 }

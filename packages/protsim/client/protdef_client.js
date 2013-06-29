@@ -373,19 +373,19 @@ Template.interface.helpers({
 });
 
 Template.interface.events({
-  'dblclick .display_local_port': function(evt, tmpl) {
+  'click .display_local_port': function(evt, tmpl) {
     Session.set('editing_local_port', this._id);
     Deps.flush(); // update DOM before focus
     activateInput(tmpl.find("#" + this._id + "_local_port"));
   },
 
-  'dblclick .display_remote_port': function(evt, tmpl) {
+  'click .display_remote_port': function(evt, tmpl) {
     Session.set('editing_remote_port', this._id);
     Deps.flush(); // update DOM before focus
     activateInput(tmpl.find("#" + this._id + "_remote_port"));
   },
 
-  'dblclick .display_remote_ip': function(evt, tmpl) {
+  'click .display_remote_ip': function(evt, tmpl) {
     Session.set('editing_remote_ip', this._id);
     Deps.flush(); // update DOM before focus
     activateInput(tmpl.find("#" + this._id + "_remote_ip"));

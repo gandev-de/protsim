@@ -4,16 +4,19 @@ Protocol = function(options) {
   this.name = options.name || "udp1";
   this.interface = options.interface || new Interface();
   this.telegrams = options.telegrams || [new Telegram()];
-  this.test_responses = options.test_responses || [];
-  //test conversation data
-  this.conversation = [{
-    from: {x: 50, y: 50},
-    to: {x: 300, y: 50},
-    idx: 0
-  },{
-    from: {x: 300, y: 50},
-    to: {x: 50, y: 200},
-    idx: 1
+  this.conversations = options.conversations || [{
+    name: "default-conversation",
+    conversation: [
+    // {
+    //     type: "send",
+    //     telegram: new Telegram(),
+    //     idx: 0
+    //   },{
+    //     type: "receive",
+    //     telegram: new Telegram(),
+    //     idx: 1
+    // }
+    ]
   }];
 };
 
@@ -23,7 +26,7 @@ Protocol.fromJSONValue = function(value) {
     name: value.name,
     interface: EJSON.fromJSONValue(value.interface),
     telegrams: EJSON.fromJSONValue(value.telegrams),
-    test_responses: value.test_responses
+    conversations: value.conversations
   });
 };
 
@@ -39,6 +42,35 @@ Protocol.prototype = {
     return telegram || new Telegram();
   },
 
+  findConversationByName: function(conversation_name) {
+    var protocol = this;
+    var conversations = protocol.conversations;
+    var conversation = _.find(conversations, function(conv) {
+      return conv.name === conversation_name;
+    });
+    return conversation;
+  },
+
+  findConversationTelegramByIdx: function(conversation_name, idx) {
+    if(!conversation_name) return;
+
+    var protocol = this;
+    var conversations = protocol.conversations;
+    var conversation = _.find(conversations, function(conv) {
+      return conv.name === conversation_name;
+    });
+
+    if(!conversation) return;
+
+    var telegram_obj = _.find(conversation.conversation, function(tel) {
+      return tel.idx === idx;
+    });
+
+    if(!telegram_obj) return;
+
+    return telegram_obj.telegram;
+  },
+
   typeName: function() {
     return "Protocol";
   },
@@ -48,7 +80,7 @@ Protocol.prototype = {
       this.name == other.name &&
       this.interface.equals(other.interface) &&
       _.isEqual(this.telegrams, other.telegrams) &&
-      _.isEqual(this.test_responses, other.test_responses);
+      _.isEqual(this.conversations, other.conversations);
   },
 
   clone: function() {
@@ -57,7 +89,7 @@ Protocol.prototype = {
       name: this.name,
       interface: this.interface,
       telegrams: this.telegrams,
-      test_responses: this.test_responses
+      conversations: this.conversations
     });
   },
 
@@ -67,7 +99,7 @@ Protocol.prototype = {
       name: this.name,
       interface: EJSON.toJSONValue(this.interface),
       telegrams: EJSON.toJSONValue(this.telegrams),
-      test_responses: this.test_responses
+      conversations: this.conversations
     };
   }
 };

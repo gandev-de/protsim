@@ -2,15 +2,78 @@
 	<div class="page-header">
 		<h2>Protocol Conversation <small>[{{protocol.name}}]</small></h2>
 	</div>
-	<p>Vision:
-	- configure a conversation like {server sends tel1} --> {client answers with tel 5} with d3js</p>
 
-	 <div class="conversation" style="float: left;">
-     {{#constant}}
-      <svg width="600" height="600">
-        <g class="endpoints"></g>
-        <g class="flow"></g>
-      </svg>
-    {{/constant}}
-  	</div>
+  <div class="row conversation_controls">
+    {{#with protocol}}
+    <div class="span4 conversations">
+      <strong>Conversations: </strong>
+      {{#each conversations}}
+        <span class="label select_conversation {{selected_conversation}}">{{name}}</span>
+      {{/each}}
+      {{> modal}}
+    </div>
+    {{/with}}
+  </div>
+
+  <div class="row conversation">
+    {{#with protocol}}
+    <div class="span5 conversations">
+    	<div class="conversation" style="float: left;">
+         {{#constant}}
+          <svg width="600" height="600">
+            <defs></defs>
+            <rect class="telegram_select_conversation"></rect>
+          </svg>
+        {{/constant}}
+      </div>
+    </div>
+    <div class="span7">
+      {{#with conversation_telegram}}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Offset</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Send Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each values}}
+          <tr>
+            <td>{{offset}}</td>
+            <td>{{type}}</td>
+            <td>{{name}}</td>
+            <td><input type="text" id="send_conversation_{{name}}" value="{{current}}"></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      <button class="btn" type="button" id="save_conversation_telegram">Save</button>
+      {{/with}}
+    </div>
+    {{/with}}
+  </div>
+</template>
+
+<template name="modal">
+  <!-- Modal Interface Type and Mode-->
+  <div id="conversationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="conversationModalLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="conversationModalLabel">Add telegram to send from {{modal_participant}}</h3>
+    </div>
+    <div class="modal-body">
+      <label>Telegram</label>
+      <select id="conversation_telegram">
+        {{#each telegrams}}
+          <option value="{{_id}}">{{name}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary add_conversation_telegram" data-dismiss="modal">Add Telegram</button>
+    </div>
+  </div>
 </template>
