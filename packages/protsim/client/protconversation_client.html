@@ -5,8 +5,14 @@
 
   <div class="row conversation_controls">
     {{#with protocol}}
-    <div class="span4 conversations">
-      <strong>Conversations: </strong>
+    <div class="span1">
+      Conversations:<br>
+      <div class="btn-group">
+        <a class="btn btn-mini" id="add_conversation"><i class="icon-plus"></i></a>
+        <a class="btn btn-mini btn-danger" id="remove_conversation"><i class="icon-minus"></i></a>
+      </div>
+    </div>
+    <div class="span10 conversations">
       {{#each conversations}}
         <span class="label select_conversation {{selected_conversation}}">{{name}}</span>
       {{/each}}
@@ -17,7 +23,7 @@
 
   <div class="row conversation">
     {{#with protocol}}
-    <div class="span5 conversations">
+    <div class="span6 conversations">
     	<div class="conversation" style="float: left;">
          {{#constant}}
           <svg width="600" height="600">
@@ -27,7 +33,7 @@
         {{/constant}}
       </div>
     </div>
-    <div class="span7">
+    <div class="span6">
       {{#with conversation_telegram}}
       <table class="table">
         <thead>
@@ -50,6 +56,7 @@
         </tbody>
       </table>
       <button class="btn" type="button" id="save_conversation_telegram">Save</button>
+      <button class="btn" type="button" id="remove_conversation_telegram">Remove</button>
       {{/with}}
     </div>
     {{/with}}
@@ -58,7 +65,7 @@
 
 <template name="modal">
   <!-- Modal Interface Type and Mode-->
-  <div id="conversationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="conversationModalLabel" aria-hidden="true">
+  <div id="conversationModal" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="conversationModalLabel" aria-hidden="true">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
       <h3 id="conversationModalLabel">Add telegram to send from {{modal_participant}}</h3>

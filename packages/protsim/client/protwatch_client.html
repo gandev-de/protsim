@@ -3,22 +3,45 @@
   <h2>Protocol Watch <small>[{{protocol.name}}]</small></h2>
 </div>
 
-<div class="row protwatch_controls">
-  {{#with protocol}}
-  <div class="span3 watch">
-    <!-- TODO http://www.larentis.eu/switch/ -->
-    <input type="checkbox" {{watched}}/>
-    <button class="btn btn-primary" type="button" id="start_watch">watch</button>
+{{#with protocol}}
+<div class="row protwatch_tabs">
+  <div class="span6 send_tabs">
+    <ul class="nav nav-tabs">
+      <li class="active">
+        <a id="send_send_tab">Send Interface</a>
+      </li>
+      <li><a id="send_receive_tab">Receive Interface</a></li>
+    </ul>
   </div>
 
-  <div class="span4 telegrams">
-    <strong>Select send telegram: </strong>
+  <div class="span6 receive_tabs">
+    <ul class="nav nav-tabs">
+      <li class="active">
+        <a id="receive_send_tab">Send Interface</a>
+      </li>
+      <li><a id="receive_receive_tab">Receive Interface</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="row protwatch_controls">
+  <div class="span12 watch">
+    <div class="switch switch-small" id="start_watch">
+      <input type="checkbox" {{watched}} />
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span">
+    <br>Telegrams:<br>
     {{#each telegrams}}
     <span class="label watch_telegram {{selected_telegram}}">{{name}}</span>
     {{/each}}
   </div>
-  {{/with}}
+  <div class="span6"></div>
 </div>
+{{/with}}
 
 <div class="row protwatch_values">
   <div class="span6 send">
@@ -59,7 +82,7 @@
     {{/with}}
   </div>
 
-  <div class="span5 receive">
+  <div class="span6 receive">
     {{#with received}}
     <div class="page-header">
       <h3>Receive <small>[{{count}}] [{{value.name}}]</small></h>

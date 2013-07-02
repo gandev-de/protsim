@@ -123,14 +123,6 @@ Template.protdef.helpers({
         "DoubleBE"];
   },
 
-  interface_types: function() {
-    return ["udp", "tcp"];
-  },
-
-  interface_modes: function() {
-    return ["client", "server"];
-  },
-
   editing_protocol_name: function() {
     return Session.equals("editing_protocol_name", this._id) ? true : false;
   },
@@ -445,3 +437,15 @@ Template.interface.events(okCancelEvents(
     Session.set('editing_remote_ip', null);
   }
 }));
+
+/* Template modalDefTypeAndMode*/
+
+Template.modalDefTypeAndMode.helpers({
+  interface_types: function() {
+    return ["udp", "tcp"];
+  },
+
+  interface_modes: function() {
+    return ["client", "server"];
+  }
+});

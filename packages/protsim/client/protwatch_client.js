@@ -81,7 +81,9 @@ function loadHistoryValues(tmpl) {
 
 Template.protwatch.rendered = function() {
   var tmpl = this;
+
   loadHistoryValues(tmpl);
+  $('.switch')['switch']();
 };
 
 Template.protwatch.events({

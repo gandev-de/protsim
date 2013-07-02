@@ -31,32 +31,7 @@
       {{> interface}}
       <div class="btn-group">
         <a class="btn btn-mini" href="#interfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
-         
-        <!-- Modal Interface Type and Mode-->
-        <div id="interfaceModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="interfaceModalLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="interfaceModalLabel">Switch interface</h3>
-          </div>
-          <div class="modal-body">
-            <label>Type</label>
-            <select id="interface_type">
-              {{#each interface_types}}
-                <option>{{this}}</option>
-              {{/each}}
-            </select> 
-            <label>Mode</label>
-            <select id="interface_mode">
-              {{#each interface_modes}}
-                <option>{{this}}</option>
-              {{/each}}
-            </select> 
-          </div>
-          <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            <button class="btn btn-primary switch_interface" data-dismiss="modal">Switch interface</button>
-          </div>
-        </div>
+        {{> modalDefTypeAndMode}}
       </div>
     </div>
     {{/with}}
@@ -203,5 +178,33 @@
       <div class="display_remote_port">{{transport.remote_port}}</div>
     </div>
     {{/if}}
+  </div>
+</template>
+
+<template name="modalDefTypeAndMode">
+  <!-- Modal Interface Type and Mode-->
+  <div id="interfaceModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="interfaceModalLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="interfaceModalLabel">Switch interface</h3>
+    </div>
+    <div class="modal-body">
+      <label>Type</label>
+      <select id="interface_type">
+        {{#each interface_types}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select> 
+      <label>Mode</label>
+      <select id="interface_mode">
+        {{#each interface_modes}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select> 
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary switch_interface" data-dismiss="modal">Switch interface</button>
+    </div>
   </div>
 </template>

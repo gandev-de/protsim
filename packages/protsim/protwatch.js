@@ -50,7 +50,6 @@ if (Meteor.isServer) {
       var new_content = {
         count: ++self.telegram_counter,
         raw: msg.toString(),
-        raw_json: msg.toJSON(),
         value: telegram
       };
 
@@ -284,6 +283,7 @@ if (Meteor.isServer) {
     },
 
     updateProtocolConversation: function(protocol_id, conversation) {
+      conversation.conversation = Protocol.updateConversationIdx(conversation.conversation);
       Protocols.update({
         _id: protocol_id,
         'conversations.name': conversation.name
