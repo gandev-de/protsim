@@ -26,15 +26,23 @@
     </div>
     
     {{#if equal protocol._id _id}}
-    {{#with interface}}
     <div class="span3 interface">
+      {{#with send_interface}}
       {{> interface}}
       <div class="btn-group">
         <a class="btn btn-mini" href="#interfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
         {{> modalDefTypeAndMode}}
       </div>
+      {{/with}}
+
+      {{#with recv_interface}}
+      {{> interface}}
+      <div class="btn-group">
+        <a class="btn btn-mini" href="#interfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
+        {{> modalDefTypeAndMode}}
+      </div>
+      {{/with}}
     </div>
-    {{/with}}
 
     <div class="span7 telegrams">
       <div class="row-fluid">

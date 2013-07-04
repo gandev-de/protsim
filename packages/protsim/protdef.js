@@ -1,9 +1,10 @@
 if (Meteor.isClient) {
 	Protdef = new Meteor.Collection("protocols", {
 		transform: function(coll) {
-			coll.interface = Interface.fromJSONValue(coll.interface);
+			coll.send_interface = Interface.fromJSONValue(coll.send_interface);
+			coll.recv_interface = Interface.fromJSONValue(coll.recv_interface);
 
-			if (coll.interface) {
+			if (coll.send_interface && coll.recv_interface) {
 				for (var i = 0; i < coll.telegrams.length; i++) {
 					var telegram = coll.telegrams[i];
 					telegram = Telegram.fromJSONValue(telegram);
@@ -26,8 +27,11 @@ if (Meteor.isServer) {
 		protocol = protocol || new Protocol();
 		duplicate = duplicate || false;
 
-		var interface_json = protocol.interface.toJSONValue();
-		interface_json._id = new Meteor.Collection.ObjectID()._str;
+		var send_interface_json = protocol.send_interface.toJSONValue();
+		send_interface_json._id = new Meteor.Collection.ObjectID()._str;
+
+		var recv_interface_json = protocol.recv_interface.toJSONValue();
+		recv_interface_json._id = new Meteor.Collection.ObjectID()._str;
 
 		var telegrams_json = [];
 		protocol.telegrams.forEach(function(telegram) {
@@ -37,7 +41,8 @@ if (Meteor.isServer) {
 		});
 
 		var protocol_json = protocol.toJSONValue();
-		protocol_json.interface = interface_json;
+		protocol_json.send_interface = send_interface_json;
+		protocol_json.recv_interface = recv_interface_json;
 		protocol_json.telegrams = telegrams_json;
 
 		if (protocol._id && !duplicate) {

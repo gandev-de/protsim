@@ -11,7 +11,7 @@ if (Meteor.isServer) {
   var util = Npm.require('util');
   var net = Npm.require('net');
 
-  var watchs = {
+  Protwatchs = {
     pub: undefined
   };
 
@@ -30,7 +30,7 @@ if (Meteor.isServer) {
             self.protocol.telegrams[i] = telegram;
           }
         }
-        //TODO update interface
+        //TODO update send_interface
         console.log("update watched protocol:", id);
       }
     });
@@ -39,30 +39,41 @@ if (Meteor.isServer) {
     self.telegram_counter = 0;
   };
 
-  ProtocolWatch.prototype.new_telegram = function(msg) {
+  ProtocolWatch.prototype.new_telegram = function(msg, direction) {
     var self = this;
     //identify telegram type
     var telegram = self.protocol.findTelegramByMessage(msg);
     if (telegram instanceof Telegram) {
       telegram.values = telegram.convertFromBuffer(msg);
       console.log("change..sub: ", self.pub._session.id);
+      var msg_raw = msg.toString();
       //change subscription
       var new_content = {
         count: ++self.telegram_counter,
-        raw: msg.toString(),
-        value: telegram
+        raw: msg_raw,
+        value: telegram,
+        direction: direction
       };
+
+      if(self.logging_active && addLogEntry) {
+        addLogEntry(self.watch_id, telegram, msg_raw, direction);
+      }
 
       self.pub.changed("protwatch", self.watch_id, new_content);
       //save last telegram for new subscriptions
-      self.last_content = new_content;
+      if(direction == "pi") {
+        self.last_recv_content = new_content;
+      } else {
+        self.last_send_content = new_content;
+      }
     }
   };
 
-  ProtocolWatch.prototype.createConnection = function() {
+  ProtocolWatch.prototype.createConnection = function(iface, direction) {
     var self = this;
-    var transport = self.protocol.interface.transport;
+    var transport = iface.transport;
     console.log("create connection type: " + transport.type);
+    var conn;
     switch (transport.type) {
       case "udp":
         var udp = dgram.createSocket("udp4");
@@ -71,7 +82,7 @@ if (Meteor.isServer) {
           console.log("udp message received: " + msg.toString());
           self.new_telegram(msg);
         });
-        self.connection = udp;
+        conn = udp;
         break;
       case "tcp":
         var tcp;
@@ -80,7 +91,7 @@ if (Meteor.isServer) {
             host: transport.remote_ip}, function() {
             //'connect' listener TODO
             console.log('client connected');
-            self.connection = tcp;
+            conn = tcp;
           });
 
           tcp.on('end', function() {
@@ -89,7 +100,7 @@ if (Meteor.isServer) {
 
           tcp.on("data", function(msg) {
             console.log("tcp message received: " + msg.toString());
-            self.new_telegram(msg);
+            self.new_telegram(msg, direction);
           });
         } else if(transport.mode == "server") {
           tcp = net.createServer(function(c) {
@@ -102,39 +113,53 @@ if (Meteor.isServer) {
 
             c.on('data', function(msg) {
               console.log("tcp message received: " + msg.toString());
-              self.new_telegram(msg);
+              self.new_telegram(msg, direction);
             });
-            self.connection = c;
+            conn = c;
           });
 
           tcp.listen(transport.local_port, function() {
             //'listening' listener
             console.log('server bound');
           });
-          self.server = tcp;
+
+          if(direction == "pi") {
+            self.recv_server = tcp;
+          } else {
+            self.send_server = tcp;
+          }
         }
         break;
       default:
         //TODO
     }
+
+    if(direction == "pi") {
+      self.recv_connection = conn;
+    } else {
+      self.send_connection = conn;
+    }
   };
 
-  ProtocolWatch.prototype.closeConnection = function() {
+  ProtocolWatch.prototype.closeConnection = function(direction) {
     var self = this;
-    var transport = self.protocol.interface.transport;
+    var transport = direction == "pi" ? self.protocol.recv_interface.transport: self.protocol.send_interface.transport;
+    var conn = direction == "pi" ? self.recv_connection: self.send_connection;
     console.log("close connection type: " + transport.type);
     switch (transport.type) {
       case "udp":
-        var udp = self.connection;
-        if (udp && udp._bound) udp.close();
+        if (conn && conn._bound) conn.close();
         break;
       case "tcp":
-        var tcp = self.connection;
-        if (transport.mode == "server" && tcp) {
-          tcp.end();
-          self.server.close();
-        } else if (transport.mode == "client" && tcp) {
-          tcp.end();
+        if (transport.mode == "server" && conn) {
+          conn.end();
+          if(direction == "pi") {
+            self.recv_server.close();
+          } else {
+            self.send_server.close();
+          }
+        } else if (transport.mode == "client" && conn) {
+          conn.end();
         }
         break;
       default:
@@ -146,20 +171,21 @@ if (Meteor.isServer) {
     var self = this;
     console.log("initial publish..sub: ", self.pub._session.id);
 
-    //add new watch to subscription
-    self.pub.added("protwatch", self.watch_id, self.last_content);
+    //add new watch to subscription //TODO !!! send receive data
+    self.pub.added("protwatch", self.watch_id, self.last_recv_content);
+    self.pub.added("protwatch", self.watch_id, self.last_send_content);
 
     self.pub.ready();
   };
 
-  ProtocolWatch.prototype.stopWatch = function() {
+  ProtocolWatch.prototype.stopWatch = function(direction) {
     var self = this;
     self.protdef_handle.stop(); //stop observing protdef changes
 
     console.log("stop watch..sub: ", self.pub._session.id);
 
-    self.closeConnection();
-    //remove watch from subscription
+    self.closeConnection(direction);
+    //remove watch from subscription //TODO direction specific
     self.pub.removed("protwatch", self.watch_id);
   };
 
@@ -168,49 +194,52 @@ if (Meteor.isServer) {
   //Receive
 
   //watch_id currently always should be the protocol id
-  var start_watch = function(watch_id, protocol) {
-    console.log("start watch..id: ", watch_id, "..sub:", watchs.pub._session.id);
+  var start_watch = function(watch_id, protocol, direction) {
+    console.log("start watch..id: ", watch_id, "..sub:", Protwatchs.pub._session.id);
+    var iface = direction == "pi" ? protocol.recv_interface : protocol.send_interface;
 
     var new_watch = true;
     var watch;
-    if (watchs[watch_id]) {
+    if (Protwatchs[watch_id]) {
       new_watch = false;
-      watch = watchs[watch_id];
+      watch = Protwatchs[watch_id];
     }
 
     var init_watch = function() {
-      watch = new ProtocolWatch(watchs.pub, protocol, watch_id);
-      watch.createConnection();
+      watch = new ProtocolWatch(Protwatchs.pub, protocol, watch_id);
+      watch.createConnection(iface, direction);
     };
 
     if (new_watch) {
       init_watch();
       watch.publish();
+    } else {
+      watch.createConnection(iface, direction);
     }
 
-    watchs[watch_id] = watch;
+    Protwatchs[watch_id] = watch;
   };
 
-  var end_watch = function(watch_id) {
-    if (watchs[watch_id] instanceof ProtocolWatch) {
-      watchs[watch_id].stopWatch();
+  var end_watch = function(watch_id, direction) {
+    if (Protwatchs[watch_id] instanceof ProtocolWatch) {
+      Protwatchs[watch_id].stopWatch(direction);
     }
-    delete watchs[watch_id];
+    delete Protwatchs[watch_id];
   };
 
   //publish watch changes
   Meteor.publish("protwatch", function() {
     var self = this;
 
-    if (watchs.pub) {
-      watchs.pub.stop();
+    if (Protwatchs.pub) {
+      Protwatchs.pub.stop();
     }
-    watchs.pub = self;
+    Protwatchs.pub = self;
 
-    for (var watch in watchs) {
-      if (watchs[watch] instanceof ProtocolWatch) {
-        watchs[watch].pub = self;
-        watchs[watch].publish();
+    for (var watch in Protwatchs) {
+      if (Protwatchs[watch] instanceof ProtocolWatch) {
+        Protwatchs[watch].pub = self;
+        Protwatchs[watch].publish();
       }
     }
 
@@ -224,19 +253,30 @@ if (Meteor.isServer) {
 
   //Send
 
-  var sendMessage = function(watch_id, msg) {
-    var watch = watchs[watch_id];
-    if (watch.protocol && watch.protocol.interface && watch.connection) {
-      var transport = watch.protocol.interface.transport;
+  var sendMessage = function(watch_id, msg, telegram, direction) {
+    var watch = Protwatchs[watch_id];
+    var iface = direction == "pi" ? watch.protocol.recv_interface : watch.protocol.send_interface;
+    if (watch.protocol && iface && watch.connection) {
+      var conn = watch.connection;
+
+      var transport = iface.transport;
       switch (transport.type) {
         case "udp":
-          var udp = watch.connection;
-          udp.send(msg, 0, msg.length, transport.remote_port, transport.remote_ip);
+          conn.send(msg, 0, msg.length, transport.remote_port, transport.remote_ip);
+
+          if(watch.logging_active && addLogEntry) {
+            addLogEntry(watch_id, telegram, msg.toString());
+          }
+
           console.log("message sended: " + msg.toString());
           break;
         case "tcp":
-          var tcp = watch.connection;
-          tcp.write(msg.toString());
+          conn.write(msg.toString());
+
+          if(watch.logging_active && addLogEntry) {
+            addLogEntry(watch_id, telegram, msg.toString());
+          }
+
           console.log("message sended: " + msg.toString());
           break;
         default:
@@ -250,7 +290,7 @@ if (Meteor.isServer) {
       options = options || {};
       var count = options.count || 1;
       if (telegram instanceof Telegram) {
-        sendMessage(watch_id, telegram.convertToBuffer());
+        sendMessage(watch_id, telegram.convertToBuffer(), telegram);
       } else {
         if (count > 0 && count <= 1000) {
           for (var i = 0; i < count; i++) {
@@ -260,9 +300,9 @@ if (Meteor.isServer) {
       }
     },
 
-    startWatch: function(watch_id, protocol) {
+    startWatch: function(watch_id, protocol, direction) {
       if (protocol instanceof Protocol) {
-        start_watch(watch_id, protocol);
+        start_watch(watch_id, protocol, direction);
       }
     },
 

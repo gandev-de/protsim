@@ -26,9 +26,11 @@
 
 <div class="row protwatch_controls">
   <div class="span12 watch">
-    <div class="switch switch-small" id="start_watch">
-      <input type="checkbox" {{watched}} />
-    </div>
+      {{#if watch_active}}
+        <a class="btn" id="stop_watch"><i class="icon-off"></i></a>
+      {{else}}
+        <a class="btn" id="start_watch"><i class="icon-play"></i></a>
+      {{/if}}
   </div>
 </div>
 

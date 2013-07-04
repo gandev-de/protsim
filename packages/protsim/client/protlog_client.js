@@ -1,6 +1,12 @@
 var logging_handle;
+var just_refreshed = false;
 
 Session.set("mouseover_log_entry", null);
+
+Template.protlog.rendered = function() {
+	var tmpl = this;
+	console.log("protlog rendered");
+};
 
 Template.protlog.helpers({
 	protocol: function() {
@@ -9,8 +15,12 @@ Template.protlog.helpers({
 		});
 	},
 
-	logging: function() {
-		return Session.get("logging_active") ? 'checked' : '';
+	// protlog_ready: function() {
+	//	return Session.get("protlog_ready");
+	// },
+
+	logging_active: function() {
+		return Session.get("logging_active");
 	},
 
 	protlog: function() {
@@ -39,23 +49,19 @@ Template.protlog.helpers({
 
 Template.protlog.events({
 	'click #start_logging': function(evt, tmpl) {
-		var protocol_id = Session.get("protocol_selected");
+		var protocol = this;
 
-		var protocol = Protdef.findOne({_id: protocol_id});
-		var telegram = protocol.findTelegramById(Session.get("telegram_selected_watch"));
-		if(logging_handle && logging_handle.stop) {
-			logging_handle.stop();
-		}
-
-		logging_handle = Protwatch.find().observe({
-			changed: function(newDocument, oldDocument) {
-				if(newDocument.value) {
-					//TODO logging to other destination
-					Meteor.call("addLogEntry", newDocument._id, newDocument.value, newDocument.raw);
-				}
-			}
-		});
+		Meteor.call("startLogging", protocol);
 		Session.set("logging_active", true);
+		console.log("start logging");
+	},
+
+	'click #stop_logging': function(evt, tmpl) {
+		var protocol = this;
+
+		Meteor.call("stopLogging", protocol);
+		Session.set("logging_active", false);
+		console.log("stop logging");
 	},
 
 	'click #clear_log': function(evt, tmpl) {
@@ -64,10 +70,19 @@ Template.protlog.events({
 
 	'mouseover .log_entry': function(evt, tmpl) {
 		var log_entry_id = evt.currentTarget.id;
-		Session.set("mouseover_log_entry", log_entry_id);
+
+		if(tmpl.timeout_id) {
+			Meteor.clearTimeout(tmpl.timeout_id);
+		}
+		tmpl.timeout_id = Meteor.setTimeout(function() {
+			Session.set("mouseover_log_entry", log_entry_id);
+		}, 100);
 	},
 
 	'mouseout .log_entry': function(evt, tmpl) {
+		if(tmpl.timeout_id) {
+			Meteor.clearTimeout(tmpl.timeout_id);
+		}
 		Session.set("mouseover_log_entry", null);
 	}
 });

@@ -2,7 +2,8 @@ Protocol = function(options) {
   options = options || {};
   this._id = options._id;
   this.name = options.name || "udp1";
-  this.interface = options.interface || new Interface();
+  this.send_interface = options.send_interface || new Interface();
+  this.recv_interface = options.recv_interface || new Interface();
   this.telegrams = options.telegrams || [new Telegram()];
   this.conversations = options.conversations || [{
     name: "conversation",
@@ -14,7 +15,8 @@ Protocol.fromJSONValue = function(value) {
   return new Protocol({
     _id: value._id,
     name: value.name,
-    interface: EJSON.fromJSONValue(value.interface),
+    send_interface: EJSON.fromJSONValue(value.send_interface),
+    recv_interface: EJSON.fromJSONValue(value.recv_interface),
     telegrams: EJSON.fromJSONValue(value.telegrams),
     conversations: value.conversations
   });
@@ -75,7 +77,8 @@ Protocol.prototype = {
   equals: function(other) {
     return this._id == other._id &&
       this.name == other.name &&
-      this.interface.equals(other.interface) &&
+      this.send_interface.equals(other.send_interface) &&
+      this.recv_interface.equals(other.recv_interface) &&
       _.isEqual(this.telegrams, other.telegrams) &&
       _.isEqual(this.conversations, other.conversations);
   },
@@ -84,7 +87,8 @@ Protocol.prototype = {
     return new Protocol({
       _id: this._id,
       name: this.name,
-      interface: this.interface,
+      send_interface: this.send_interface,
+      recv_interface: this.send_interface,
       telegrams: this.telegrams,
       conversations: this.conversations
     });
@@ -94,7 +98,8 @@ Protocol.prototype = {
     return {
       _id: this._id,
       name: this.name,
-      interface: EJSON.toJSONValue(this.interface),
+      send_interface: EJSON.toJSONValue(this.send_interface),
+      recv_interface: EJSON.toJSONValue(this.recv_interface),
       telegrams: EJSON.toJSONValue(this.telegrams),
       conversations: this.conversations
     };

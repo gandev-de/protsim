@@ -2,15 +2,27 @@
 	<div class="page-header">
 	  <h2>Protocol Log <small>[{{protocol.name}}]</small></h2>
 	</div>
+
+	{{#with protocol}}
+	<div class="row protlog_controls">
+		<div class="span12">
+			{{#if logging_active}}
+				<a class="btn" id="stop_logging"><i class="icon-off"></i></a>
+			{{else}}
+				<a class="btn" id="start_logging"><i class="icon-play"></i></a>
+			{{/if}}
+			<input type="button" class="btn btn-small" id="clear_log" value="Clear">
+	    </div>
+	</div>
+	{{/with}}
+
 	<div class="row protlog">
 		<div class="span12">
-    		<input type="checkbox" {{logging}}/>
-    		<button class="btn btn-primary" type="button" id="start_logging">log</button>
-			<input type="button" class="btn btn-small" id="clear_log" value="Clear">
 			<table class="table table-hover">
 			    <thead>
 			        <tr>
-			        	<th>#</th>
+			        	<th>Time</th>
+			        	<th>Direction</th>
 			        	<th>Protocol</th>
 			        	<th>Telegram</th>
 			        	<th>Raw Value</th>
@@ -41,14 +53,17 @@
 				</div>
 				{{/with}}
 			    <tbody>
-				{{#each protlog}}
-				<tr class="log_entry" id="{{_id}}">
-					<td style="width: 20%">{{timestamp_formatted timestamp}}</td>
-					<td>{{protlog_protocol}}</td>
-					<td>{{telegram.name}}</td>
-					<td>{{raw_value}}</td>
-				</tr>
-				{{/each}}
+			      {{! #if protlog_ready}}
+					{{#each protlog}}
+					<tr class="log_entry" id="{{_id}}">
+						<td style="width: 20%">{{timestamp_formatted timestamp}}</td>
+						<td>{{direction}}</td> 	
+						<td>{{protlog_protocol}}</td>
+						<td>{{telegram.name}}</td>
+						<td>{{raw_value}}</td>
+					</tr>
+					{{/each}}
+				  {{! /if}}
 			  </tbody>
 			</table>
 		</div>

@@ -350,6 +350,10 @@ function endWatch(protocol_id) {
 
 //************* interface Template *************
 
+Template.interface.rendered = function() {
+  var tmpl = this;
+};
+
 Template.interface.helpers({
   editing_local_port: function() {
     return Session.equals("editing_local_port", this._id) ? true : false;

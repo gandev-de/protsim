@@ -32,10 +32,10 @@ Template.protwatch.helpers({
     }
   },
 
-  watched: function() {
+  watch_active: function() {
     return Protwatch.findOne({
       _id: this._id
-    }) ? 'checked' : '';
+    }) ? true : false;
   },
 
   disabled_history_value: function(value_history) {
@@ -81,9 +81,8 @@ function loadHistoryValues(tmpl) {
 
 Template.protwatch.rendered = function() {
   var tmpl = this;
-
+  console.log("protwatch rendered");
   loadHistoryValues(tmpl);
-  $('.switch')['switch']();
 };
 
 Template.protwatch.events({
@@ -160,14 +159,21 @@ Template.protwatch.events({
   },
 
   'click #start_watch': function(evt, tmpl) {
+    var protocol = this;
+    Meteor.call("startWatch", protocol._id, protocol);
+  },
+
+  'click #stop_watch': function(evt, tmpl) {
+    var protocol = this;
     var watch = Protwatch.findOne({
-      _id: this._id
+      _id: protocol._id
     });
     if (watch) {
+      //stop logging
+      Meteor.call(protocol);
       Session.set("logging_active", false);
-      Meteor.call("endWatch", this._id);
-    } else {
-      Meteor.call("startWatch", this._id, this);
+
+      Meteor.call("endWatch", protocol._id);
     }
   }
 });
