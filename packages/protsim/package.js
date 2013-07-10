@@ -3,7 +3,7 @@ Package.describe({
 });
 
 Package.on_use(function(api) {
-  api.use(["ejson", "underscore"], ["client", "server"]);
+  api.use(["ejson", "underscore", "random"], ["client", "server"]);
   api.use(["bootstrap", "templating", "handlebars", "controls", "d3", "jquery"], ["client"]);
 
   api.add_files(["interface.js", "protocol.js", "telegram.js"], ["client", "server"]);

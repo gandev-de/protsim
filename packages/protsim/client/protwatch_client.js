@@ -1,12 +1,44 @@
+var INTERFACES = ["Send", "Receive"];
+
 //************* watch Template *************
 
 Session.set("telegram_selected_watch", null);
 Session.set("selected_history_value", 0);
+Session.set("active_send_send_interface", INTERFACES[0]);
+Session.set("active_recv_send_interface", INTERFACES[0]);
 
 Template.protwatch.helpers({
-  received: function() {
+  interfaces: function() {
+    return INTERFACES;
+  },
+
+  send_send_interface_active: function() {
+    return Session.equals("active_send_send_interface", INTERFACES[0]);
+  },
+
+  recv_send_interface_active: function() {
+    return Session.equals("active_recv_send_interface", INTERFACES[0]);
+  },
+
+  active_send_send_interface: function() {
+    var type = this + "";
+    return Session.equals("active_send_send_interface", type) ? 'active' : '';
+  },
+
+  active_recv_send_interface: function() {
+    var type = this + "";
+    return Session.equals("active_recv_send_interface", type) ? 'active' : '';
+  },
+
+  send_received: function() {
     return Protwatch.findOne({
-      _id: Session.get("protocol_selected")
+      _id: Session.get("protocol_selected") + "_send"
+    });
+  },
+
+  recv_received: function() {
+    return Protwatch.findOne({
+      _id: Session.get("protocol_selected") + "_recv"
     });
   },
 
@@ -32,9 +64,15 @@ Template.protwatch.helpers({
     }
   },
 
-  watch_active: function() {
+  send_watch_active: function() {
     return Protwatch.findOne({
-      _id: this._id
+      _id: this._id + "_send"
+    }) ? true : false;
+  },
+
+  recv_watch_active: function() {
+    return Protwatch.findOne({
+      _id: this._id + "_recv"
     }) ? true : false;
   },
 
@@ -85,41 +123,48 @@ Template.protwatch.rendered = function() {
   loadHistoryValues(tmpl);
 };
 
+function send(telegram, tmpl, type) {
+  //TODO check if sending possible (maybe if watch active)
+  var value_history = telegram.value_history || [];
+  var history_value = {};
+  for (var i = 0; i < telegram.values.length; i++) {
+    var value = telegram.values[i];
+    var value_html = tmpl.find("#send_" + value.name).value;
+
+    telegram.values[i].current = value_html;
+    history_value[value.name] = value_html;
+  }
+
+  //TODO sort
+  if (!_.findWhere(value_history, history_value)) {
+    if(value_history.length == 10) {
+      value_history.shift();
+    }
+    value_history.push(history_value);
+    loadHistoryValues(tmpl, history_value);
+    Session.set("selected_history_value", value_history.length - 1);
+  }
+
+  Meteor.call("sendTelegram", Session.get("protocol_selected"), telegram, {type: type});
+
+  Meteor.call("updateTelegramValueHistory",
+    Session.get("protocol_selected"),
+    telegram._id,
+    value_history);
+}
+
 Template.protwatch.events({
   'click .watch_telegram': function(evt, tmpl) {
     var telegram = this;
     Session.set("telegram_selected_watch", telegram._id);
   },
 
-  'click #send': function(evt, tmpl) {
-    //TODO check if sending possible (maybe if watch active)
-    var telegram = this;
-    var value_history = telegram.value_history || [];
-    var history_value = {};
-    for (var i = 0; i < telegram.values.length; i++) {
-      var value = telegram.values[i];
-      var value_html = tmpl.find("#send_" + value.name).value;
+  'click #send_send': function(evt, tmpl) {
+    send(this, tmpl, "_send");
+  },
 
-      telegram.values[i].current = value_html;
-      history_value[value.name] = value_html;
-    }
-
-    //TODO sort
-    if (!_.findWhere(value_history, history_value)) {
-      if(value_history.length == 10) {
-        value_history.shift();
-      }
-      value_history.push(history_value);
-      loadHistoryValues(tmpl, history_value);
-      Session.set("selected_history_value", value_history.length - 1);
-    }
-
-    Meteor.call("sendTelegram", Session.get("protocol_selected"), telegram);
-
-    Meteor.call("updateTelegramValueHistory",
-      Session.get("protocol_selected"),
-      telegram._id,
-      value_history);
+  'click #send_recv': function(evt, tmpl) {
+    send(this, tmpl, "_recv");
   },
 
   'click .history_value': function(evt, tmpl) {
@@ -154,26 +199,56 @@ Template.protwatch.events({
     var loopback_counter = +tmpl.find("#loopback_counter").value;
 
     Meteor.call("sendTelegram", protwatch._id, protwatch.raw, {
-      count: loopback_counter
+      count: loopback_counter,
+      type: "_send"
     });
   },
 
-  'click #start_watch': function(evt, tmpl) {
+  'click #start_send_watch': function(evt, tmpl) {
     var protocol = this;
-    Meteor.call("startWatch", protocol._id, protocol);
+    Meteor.call("startWatch", protocol, "_send");
   },
 
-  'click #stop_watch': function(evt, tmpl) {
+  'click #start_recv_watch': function(evt, tmpl) {
+    var protocol = this;
+    Meteor.call("startWatch", protocol, "_recv");
+  },
+
+  'click #stop_send_watch': function(evt, tmpl) {
     var protocol = this;
     var watch = Protwatch.findOne({
-      _id: protocol._id
+      _id: protocol._id + "_send"
     });
     if (watch) {
       //stop logging
       Meteor.call(protocol);
       Session.set("logging_active", false);
 
-      Meteor.call("endWatch", protocol._id);
+      Meteor.call("endWatch", protocol._id, "_send");
     }
+  },
+
+  'click #stop_recv_watch': function(evt, tmpl) {
+    var protocol = this;
+    var watch = Protwatch.findOne({
+      _id: protocol._id + "_recv"
+    });
+    if (watch) {
+      //stop logging
+      Meteor.call(protocol);
+      Session.set("logging_active", false);
+
+      Meteor.call("endWatch", protocol._id, "_recv");
+    }
+  },
+
+  'click .send_nav_tab': function() {
+    var type = this + "";
+    Session.set("active_send_send_interface", type);
+  },
+
+  'click .recv_nav_tab': function() {
+    var type = this + "";
+    Session.set("active_recv_send_interface", type);
   }
 });

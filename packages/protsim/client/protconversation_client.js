@@ -156,7 +156,12 @@ Template.protconversation.rendered = function() {
 	console.log("protconversation rendered");
 
 	if (!self.handle) {
-		self.handle = Deps.autorun(function() {
+		self.handle = Deps.autorun(function(computation) {
+			computation.onInvalidate(function() {
+				//trace what is causing rerun
+				//console.trace();
+			});
+
 			var protocol = Protdef.findOne({
 				_id: Session.get("protocol_selected")
 			});

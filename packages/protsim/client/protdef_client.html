@@ -27,21 +27,25 @@
     
     {{#if equal protocol._id _id}}
     <div class="span3 interface">
-      {{#with send_interface}}
-      {{> interface}}
-      <div class="btn-group">
-        <a class="btn btn-mini" href="#interfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
-        {{> modalDefTypeAndMode}}
+      <div id="send_interface">
+        {{#with iface send_interface "send_"}}
+        {{> interface}}
+        <div class="btn-group">
+          <a class="btn btn-mini" href="#sendInterfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
+          {{> modalDefTypeAndModeSend}}
+        </div>
+        {{/with}}
       </div>
-      {{/with}}
 
-      {{#with recv_interface}}
-      {{> interface}}
-      <div class="btn-group">
-        <a class="btn btn-mini" href="#interfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
-        {{> modalDefTypeAndMode}}
+      <div id="recv_interface">
+        {{#with iface recv_interface "recv_"}}
+        {{> interface}}
+        <div class="btn-group">
+          <a class="btn btn-mini" href="#recvInterfaceModal" data-toggle="modal"><i class="icon-refresh"></i></a>
+          {{> modalDefTypeAndModeRecv}}
+        </div>
+        {{/with}}
       </div>
-      {{/with}}
     </div>
 
     <div class="span7 telegrams">
@@ -189,12 +193,40 @@
   </div>
 </template>
 
-<template name="modalDefTypeAndMode">
+<template name="modalDefTypeAndModeSend">
   <!-- Modal Interface Type and Mode-->
-  <div id="interfaceModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="interfaceModalLabel" aria-hidden="true">
+  <div id="sendInterfaceModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sendInterfaceModalLabel" aria-hidden="true">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="interfaceModalLabel">Switch interface</h3>
+      <h3 id="sendInterfaceModalLabel">Switch interface</h3>
+    </div>
+    <div class="modal-body">
+      <label>Type</label>
+      <select id="interface_type">
+        {{#each interface_types}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select> 
+      <label>Mode</label>
+      <select id="interface_mode">
+        {{#each interface_modes}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select> 
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary switch_interface" data-dismiss="modal">Switch interface</button>
+    </div>
+  </div>
+</template>
+
+<template name="modalDefTypeAndModeRecv">
+  <!-- Modal Interface Type and Mode-->
+  <div id="recvInterfaceModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="recvInterfaceModalLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="recvInterfaceModalLabel">Switch interface</h3>
     </div>
     <div class="modal-body">
       <label>Type</label>

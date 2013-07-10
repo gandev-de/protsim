@@ -4,44 +4,68 @@
 </div>
 
 {{#with protocol}}
+
+<div class="row">
+  <div class="span6">
+    {{#if send_send_interface_active}}
+      <div style="background-color: red; height: 20px;"></div>
+    {{else}}
+      <div style="background-color: green; height: 20px;"></div>
+    {{/if}}
+  </div>
+  <div class="span6">
+    {{#if recv_send_interface_active}}
+      <div style="background-color: red; height: 20px;"></div>
+    {{else}}
+      <div style="background-color: green; height: 20px;"></div>
+    {{/if}}
+  </div>
+</div>
+
 <div class="row protwatch_tabs">
   <div class="span6 send_tabs">
     <ul class="nav nav-tabs">
-      <li class="active">
-        <a id="send_send_tab">Send Interface</a>
+      {{#each interfaces}}
+      <li class="{{active_send_send_interface}}">
+        <a class="send_nav_tab">{{this}} Interface</a>
       </li>
-      <li><a id="send_receive_tab">Receive Interface</a></li>
+      {{/each}}
     </ul>
   </div>
 
   <div class="span6 receive_tabs">
     <ul class="nav nav-tabs">
-      <li class="active">
-        <a id="receive_send_tab">Send Interface</a>
+      {{#each interfaces}}
+      <li class="{{active_recv_send_interface}}">
+        <a class="recv_nav_tab">{{this}} Interface</a>
       </li>
-      <li><a id="receive_receive_tab">Receive Interface</a></li>
+      {{/each}}
     </ul>
   </div>
 </div>
 
 <div class="row protwatch_controls">
-  <div class="span12 watch">
-      {{#if watch_active}}
-        <a class="btn" id="stop_watch"><i class="icon-off"></i></a>
+  <div class="span1 watch">
+    {{#if send_send_interface_active}}
+      {{#if send_watch_active}}
+        <a class="btn" id="stop_send_watch"><i class="icon-off"></i></a>
       {{else}}
-        <a class="btn" id="start_watch"><i class="icon-play"></i></a>
+        <a class="btn" id="start_send_watch"><i class="icon-play"></i></a>
       {{/if}}
+    {{else}}
+      {{#if recv_watch_active}}
+        <a class="btn" id="stop_recv_watch"><i class="icon-off"></i></a>
+      {{else}}
+        <a class="btn" id="start_recv_watch"><i class="icon-play"></i></a>
+      {{/if}}
+    {{/if}}
   </div>
-</div>
-
-<div class="row">
-  <div class="span">
-    <br>Telegrams:<br>
+  <div class="span11">
+    Telegrams:
     {{#each telegrams}}
     <span class="label watch_telegram {{selected_telegram}}">{{name}}</span>
     {{/each}}
   </div>
-  <div class="span6"></div>
 </div>
 {{/with}}
 
@@ -71,7 +95,11 @@
         {{/each}}
       </tbody>
     </table>
-    <button class="btn" type="button" id="send">send</button>
+    {{#if send_send_interface_active}}
+      <button class="btn" type="button" id="send_send">send</button>
+    {{else}}
+      <button class="btn" type="button" id="send_recv">send</button>
+    {{/if}}
     <div class="value_history pagination pagination-mini">
       <ul>
         <li><a class="history_value_left">«</a></li>
@@ -85,35 +113,45 @@
   </div>
 
   <div class="span6 receive">
-    {{#with received}}
-    <div class="page-header">
-      <h3>Receive <small>[{{count}}] [{{value.name}}]</small></h>
-    </div>
-    {{#if count}}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Offset</th>
-          <th>Type</th>
-          <th>Name</th>
-          <th>Current Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each value.values}}
-        <tr>
-          <td>{{offset}}</td>
-          <td>{{type}}</td>
-          <td>{{name}}</td>
-          <td>{{current}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-    <button class="btn" type="button" id="loopback">loopback</button>
-    <input type="text" id="loopback_counter" value="100">
+    {{#if recv_send_interface_active}}
+      {{#with send_received}}
+        {{> received}}
+      {{/with}}
+    {{else}}
+      {{#with recv_received}}
+        {{> received}}
+      {{/with}}
     {{/if}}
-    {{/with}}
   </div>
 </div>
+</template>
+
+<template name="received">
+  <div class="page-header">
+    <h3>Receive <small>[{{count}}] [{{value.name}}]</small></h>
+  </div>
+  {{#if count}}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Offset</th>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Current Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each value.values}}
+      <tr>
+        <td>{{offset}}</td>
+        <td>{{type}}</td>
+        <td>{{name}}</td>
+        <td>{{current}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <button class="btn" type="button" id="loopback">loopback</button>
+  <input type="text" id="loopback_counter" value="100">
+  {{/if}}
 </template>

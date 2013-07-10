@@ -88,7 +88,7 @@ Protocol.prototype = {
       _id: this._id,
       name: this.name,
       send_interface: this.send_interface,
-      recv_interface: this.send_interface,
+      recv_interface: this.recv_interface,
       telegrams: this.telegrams,
       conversations: this.conversations
     });

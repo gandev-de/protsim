@@ -16,7 +16,7 @@
 
 .value_history {
   position: absolute;
-  top: 25.5em;
+  top: 23.5em;
 }
 
 .remove_value, .add_value, .submit_telegram {
@@ -24,12 +24,20 @@
   bottom: 13em;
 }
 
-.interface {
-    background-color: rgb(160, 180, 200);
+#send_interface {
+    background-color: red;
 	-moz-border-radius: 1em 4em 1em 4em;
 	border-radius: 1em 1em 1em 1em;
 	padding: 0.5em; /* place between border and content*/
 	margin: 0.5em; /* place between border and environment*/	
+}
+
+#recv_interface {
+    background-color: green;
+  -moz-border-radius: 1em 4em 1em 4em;
+  border-radius: 1em 1em 1em 1em;
+  padding: 0.5em; /* place between border and content*/
+  margin: 0.5em; /* place between border and environment*/  
 }
 
 .protocol.selected {

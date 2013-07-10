@@ -15,7 +15,7 @@ if (Meteor.isServer) {
     pub: undefined
   };
 
-  ProtocolWatch = function(pub, protocol, watch_id) {
+  ProtocolWatch = function(pub, protocol) {
     var self = this;
     self.pub = pub;
     self.protocol = protocol;
@@ -34,8 +34,6 @@ if (Meteor.isServer) {
         console.log("update watched protocol:", id);
       }
     });
-
-    self.watch_id = watch_id || protocol._id;
     self.telegram_counter = 0;
   };
 
@@ -51,27 +49,37 @@ if (Meteor.isServer) {
       var new_content = {
         count: ++self.telegram_counter,
         raw: msg_raw,
-        value: telegram,
-        direction: direction
+        value: telegram
       };
 
       if(self.logging_active && addLogEntry) {
-        addLogEntry(self.watch_id, telegram, msg_raw, direction);
+        addLogEntry(self.protocol._id, telegram, msg_raw, direction);
       }
 
-      self.pub.changed("protwatch", self.watch_id, new_content);
       //save last telegram for new subscriptions
-      if(direction == "pi") {
+      if(direction == "ip") {
         self.last_recv_content = new_content;
+        self.pub.changed("protwatch", self.protocol._id + "_recv", new_content);
       } else {
         self.last_send_content = new_content;
+        self.pub.changed("protwatch", self.protocol._id + "_send", new_content);
       }
     }
   };
 
-  ProtocolWatch.prototype.createConnection = function(iface, direction) {
+  ProtocolWatch.prototype._assignConnection = function(conn, direction) {
+    var self = this;
+    if(direction == "pi") {
+      self.recv_connection = conn;
+    } else {
+      self.send_connection = conn;
+    }
+  };
+
+  ProtocolWatch.prototype.createConnection = function(iface, direction_send) {
     var self = this;
     var transport = iface.transport;
+    var direction_recv = direction_send == "pi" ? "ip" : "rp";
     console.log("create connection type: " + transport.type);
     var conn;
     switch (transport.type) {
@@ -80,9 +88,10 @@ if (Meteor.isServer) {
         udp.bind(transport.local_port, transport.local_ip);
         udp.on("message", function(msg, rinfo) {
           console.log("udp message received: " + msg.toString());
-          self.new_telegram(msg);
+          self.new_telegram(msg, direction_recv);
         });
         conn = udp;
+        self._assignConnection(conn, direction_send);
         break;
       case "tcp":
         var tcp;
@@ -92,6 +101,7 @@ if (Meteor.isServer) {
             //'connect' listener TODO
             console.log('client connected');
             conn = tcp;
+            self._assignConnection(conn, direction_send);
           });
 
           tcp.on('end', function() {
@@ -100,7 +110,7 @@ if (Meteor.isServer) {
 
           tcp.on("data", function(msg) {
             console.log("tcp message received: " + msg.toString());
-            self.new_telegram(msg, direction);
+            self.new_telegram(msg, direction_recv);
           });
         } else if(transport.mode == "server") {
           tcp = net.createServer(function(c) {
@@ -113,9 +123,10 @@ if (Meteor.isServer) {
 
             c.on('data', function(msg) {
               console.log("tcp message received: " + msg.toString());
-              self.new_telegram(msg, direction);
+              self.new_telegram(msg, direction_recv);
             });
             conn = c;
+            self._assignConnection(conn, direction_send);
           });
 
           tcp.listen(transport.local_port, function() {
@@ -123,7 +134,7 @@ if (Meteor.isServer) {
             console.log('server bound');
           });
 
-          if(direction == "pi") {
+          if(direction_send == "pi") {
             self.recv_server = tcp;
           } else {
             self.send_server = tcp;
@@ -132,12 +143,6 @@ if (Meteor.isServer) {
         break;
       default:
         //TODO
-    }
-
-    if(direction == "pi") {
-      self.recv_connection = conn;
-    } else {
-      self.send_connection = conn;
     }
   };
 
@@ -167,13 +172,16 @@ if (Meteor.isServer) {
     }
   };
 
-  ProtocolWatch.prototype.publish = function() {
+  ProtocolWatch.prototype.publish = function(direction) {
     var self = this;
     console.log("initial publish..sub: ", self.pub._session.id);
 
     //add new watch to subscription //TODO !!! send receive data
-    self.pub.added("protwatch", self.watch_id, self.last_recv_content);
-    self.pub.added("protwatch", self.watch_id, self.last_send_content);
+    if(direction == "pi" || self.last_recv_content) //TODO check connection
+      self.pub.added("protwatch", self.protocol._id + "_recv", self.last_recv_content);
+
+    if(direction == "pr" || self.last_send_content) //TODO check connection
+      self.pub.added("protwatch", self.protocol._id + "_send", self.last_send_content);
 
     self.pub.ready();
   };
@@ -185,46 +193,44 @@ if (Meteor.isServer) {
     console.log("stop watch..sub: ", self.pub._session.id);
 
     self.closeConnection(direction);
-    //remove watch from subscription //TODO direction specific
-    self.pub.removed("protwatch", self.watch_id);
+    //remove watch from subscription
+    if(direction == "pi")
+      self.pub.removed("protwatch", self.protocol._id + "_recv");
+    else
+      self.pub.removed("protwatch", self.protocol._id + "_send");
   };
 
   //**********************************************************************************
 
   //Receive
 
-  //watch_id currently always should be the protocol id
-  var start_watch = function(watch_id, protocol, direction) {
-    console.log("start watch..id: ", watch_id, "..sub:", Protwatchs.pub._session.id);
+  var start_watch = function(protocol, direction) {
+    console.log("start watch..id: ", protocol._id, "..sub:", Protwatchs.pub._session.id);
     var iface = direction == "pi" ? protocol.recv_interface : protocol.send_interface;
-
     var new_watch = true;
     var watch;
-    if (Protwatchs[watch_id]) {
+    if (Protwatchs[protocol._id]) {
       new_watch = false;
-      watch = Protwatchs[watch_id];
+      watch = Protwatchs[protocol._id];
     }
-
-    var init_watch = function() {
-      watch = new ProtocolWatch(Protwatchs.pub, protocol, watch_id);
-      watch.createConnection(iface, direction);
-    };
 
     if (new_watch) {
-      init_watch();
-      watch.publish();
+      watch = new ProtocolWatch(Protwatchs.pub, protocol, protocol._id);
+      watch.createConnection(iface, direction);
+      watch.publish(direction);
     } else {
       watch.createConnection(iface, direction);
+      watch.publish(direction);
     }
 
-    Protwatchs[watch_id] = watch;
+    Protwatchs[protocol._id] = watch;
   };
 
-  var end_watch = function(watch_id, direction) {
-    if (Protwatchs[watch_id] instanceof ProtocolWatch) {
-      Protwatchs[watch_id].stopWatch(direction);
+  var end_watch = function(protocol_id, direction) {
+    if (Protwatchs[protocol_id] instanceof ProtocolWatch) {
+      Protwatchs[protocol_id].stopWatch(direction);
     }
-    delete Protwatchs[watch_id];
+    delete Protwatchs[protocol_id];
   };
 
   //publish watch changes
@@ -253,19 +259,18 @@ if (Meteor.isServer) {
 
   //Send
 
-  var sendMessage = function(watch_id, msg, telegram, direction) {
-    var watch = Protwatchs[watch_id];
-    var iface = direction == "pi" ? watch.protocol.recv_interface : watch.protocol.send_interface;
-    if (watch.protocol && iface && watch.connection) {
-      var conn = watch.connection;
-
+  var sendMessage = function(protocol_id, msg, direction, telegram) {
+    var watch = Protwatchs[protocol_id];
+    if (watch && watch.protocol) {
+      var iface = direction == "pi" ? watch.protocol.recv_interface : watch.protocol.send_interface;
+      var conn = direction == "pi" ? watch.recv_connection : watch.send_connection;
       var transport = iface.transport;
       switch (transport.type) {
         case "udp":
           conn.send(msg, 0, msg.length, transport.remote_port, transport.remote_ip);
 
           if(watch.logging_active && addLogEntry) {
-            addLogEntry(watch_id, telegram, msg.toString());
+            addLogEntry(protocol_id, telegram, msg.toString(), direction);
           }
 
           console.log("message sended: " + msg.toString());
@@ -274,7 +279,7 @@ if (Meteor.isServer) {
           conn.write(msg.toString());
 
           if(watch.logging_active && addLogEntry) {
-            addLogEntry(watch_id, telegram, msg.toString());
+            addLogEntry(protocol_id, telegram, msg.toString(), direction);
           }
 
           console.log("message sended: " + msg.toString());
@@ -286,28 +291,31 @@ if (Meteor.isServer) {
   };
 
   Meteor.methods({
-    sendTelegram: function(watch_id, telegram, options) {
+    sendTelegram: function(protocol_id, telegram, options) {
       options = options || {};
+      var direction = options.type == "_recv" ? "pi": "pr";
       var count = options.count || 1;
       if (telegram instanceof Telegram) {
-        sendMessage(watch_id, telegram.convertToBuffer(), telegram);
+        sendMessage(protocol_id, telegram.convertToBuffer(), direction, telegram);
       } else {
         if (count > 0 && count <= 1000) {
           for (var i = 0; i < count; i++) {
-            sendMessage(watch_id, new Buffer(telegram));
+            sendMessage(protocol_id, new Buffer(telegram), direction);
           }
         }
       }
     },
 
-    startWatch: function(watch_id, protocol, direction) {
+    startWatch: function(protocol, type) {
+      var direction = type == "_recv" ? "pi": "pr";
       if (protocol instanceof Protocol) {
-        start_watch(watch_id, protocol, direction);
+        start_watch(protocol, direction);
       }
     },
 
-    endWatch: function(watch_id) {
-      end_watch(watch_id);
+    endWatch: function(protocol_id, type) {
+      var direction = type == "_recv" ? "pi": "pr";
+      end_watch(protocol_id, direction);
     },
 
     updateTelegramValueHistory: function(protocol_id, telegram_id, value_history) {

@@ -23,22 +23,22 @@ var okCancelEvents = function(selector, callbacks) {
   var cancel = callbacks.cancel || function() {};
 
   var events = {};
-  events['keyup ' + selector + ', keydown ' + selector + ', focusout ' + selector] = function(evt) {
-    if (evt.type === "keydown" && evt.which === 27) {
-      // escape = cancel
-      cancel.call(this, evt);
-
-    } else if (evt.type === "keyup" && evt.which === 13 ||
-      evt.type === "focusout") {
-      // blur/return/enter = ok/submit if non-empty
-      var value = String(evt.target.value || "");
-      if (value)
-        ok.call(this, value, evt);
-      else
+  events['keyup ' + selector + ', keydown ' + selector +
+    ', focusout ' + selector] = function(evt, tmpl) {
+      if (evt.type === "keydown" && evt.which === 27) {
+        // escape = cancel
         cancel.call(this, evt);
-    }
-  };
 
+      } else if (evt.type === "keyup" && evt.which === 13 ||
+        evt.type === "focusout") {
+        // blur/return/enter = ok/submit if non-empty
+        var value = String(evt.target.value || "");
+        if (value)
+          ok.call(this, value, evt, tmpl);
+        else
+          cancel.call(this, evt, tmpl);
+      }
+  };
   return events;
 };
 
@@ -65,13 +65,7 @@ Protdef.find().observe({
 Template.protdef.events(okCancelEvents(
   '.edit_protocol_name', {
   ok: function(value) {
-    Protdef.update({
-      _id: Session.get("protocol_selected")
-    }, {
-      '$set': {
-        'name': value
-      }
-    });
+    updateProtdefValue('name', value);
     Session.set('editing_protocol_name', null);
   },
 
@@ -121,6 +115,11 @@ Template.protdef.helpers({
         "FloatBE",
         "DoubleLE",
         "DoubleBE"];
+  },
+
+  iface: function(iface, type) {
+    iface.type = type;
+    return iface;
   },
 
   editing_protocol_name: function() {
@@ -200,35 +199,11 @@ Template.protdef.events({
     var protocol = this;
     var protocol_count = Protdef.find().count();
     if(protocol_count > 1) {
-      endWatch(protocol._id);
+      Meteor.call("endWatch", protocol._id);
       Protdef.remove({
         _id: protocol._id
       });
     }
-  },
-
-  'click .switch_interface': function(evt, tmpl) {
-    var mode_value = '';
-    var type = tmpl.find("#interface_type");
-    var type_value = type.options[type.selectedIndex].text;
-
-    if(type_value != "udp") {
-      var mode = tmpl.find("#interface_mode");
-      mode_value = mode.options[mode.selectedIndex].text;
-    }
-
-    var protocol_id = Session.get("protocol_selected");
-    endWatch(protocol_id);
-
-    Protdef.update({
-      _id: protocol_id
-    }, {
-      '$set': {
-        'interface.name': type_value + "_" + mode_value ,
-        'interface.transport.mode': mode_value,
-        'interface.transport.type': type_value
-      }
-    });
   },
 
   'click .add_telegram': function() {
@@ -338,20 +313,21 @@ function swapValue(telegram, value_name, direction) {
     telegram.values);
 }
 
-//TODO move to protwatch
-function endWatch(protocol_id) {
-  var watch = Protwatch.findOne({
-    _id: protocol_id
+function updateProtdefValue(value_selector, value) {
+  var val = {};
+  val[value_selector] = value;
+  Protdef.update({
+    _id: Session.get("protocol_selected")
+  }, {
+    '$set': val
   });
-  if (watch) {
-    Meteor.call("endWatch", protocol_id);
-  }
 }
 
 //************* interface Template *************
 
-Template.interface.rendered = function() {
+Template.interface.created = function() {
   var tmpl = this;
+  tmpl.iface = tmpl.data.type; //TODO not working on modal, why here
 };
 
 Template.interface.helpers({
@@ -390,14 +366,9 @@ Template.interface.events({
 
 Template.interface.events(okCancelEvents(
   '.edit_local_port', {
-  ok: function(value) {
-    Protdef.update({
-      _id: Session.get("protocol_selected")
-    }, {
-      '$set': {
-        'interface.transport.local_port': value
-      }
-    });
+  ok: function(value, evt, tmpl) {
+    var value_selector = tmpl.iface + 'interface.transport.local_port';
+    updateProtdefValue(value_selector, value);
     Session.set('editing_local_port', null);
   },
 
@@ -408,14 +379,9 @@ Template.interface.events(okCancelEvents(
 
 Template.interface.events(okCancelEvents(
   '.edit_remote_port', {
-  ok: function(value) {
-    Protdef.update({
-      _id: Session.get("protocol_selected")
-    }, {
-      '$set': {
-        'interface.transport.remote_port': value
-      }
-    });
+  ok: function(value, evt, tmpl) {
+    var value_selector = tmpl.iface + 'interface.transport.remote_port';
+    updateProtdefValue(value_selector, value);
     Session.set('editing_remote_port', null);
   },
 
@@ -426,14 +392,9 @@ Template.interface.events(okCancelEvents(
 
 Template.interface.events(okCancelEvents(
   '.edit_remote_ip', {
-  ok: function(value) {
-    Protdef.update({
-      _id: Session.get("protocol_selected")
-    }, {
-      '$set': {
-        'interface.transport.remote_ip': value
-      }
-    });
+  ok: function(value, evt, tmpl) {
+    var value_selector = tmpl.iface + 'interface.transport.remote_ip';
+    updateProtdefValue(value_selector, value);
     Session.set('editing_remote_ip', null);
   },
 
@@ -442,14 +403,68 @@ Template.interface.events(okCancelEvents(
   }
 }));
 
-/* Template modalDefTypeAndMode*/
+/* Template modal helper */
 
-Template.modalDefTypeAndMode.helpers({
+var INTERFACE_TYPES = ["udp", "tcp"];
+var INTERFACE_MODES = ["client", "server"];
+
+function switchInterface(tmpl, type) {
+  var mode_value = '';
+  var transport_type = tmpl.find("#interface_type");
+  var type_value = transport_type.options[transport_type.selectedIndex].text;
+
+  if(type_value != "udp") {
+    var mode = tmpl.find("#interface_mode");
+    mode_value = mode.options[mode.selectedIndex].text;
+  }
+
+  var protocol_id = Session.get("protocol_selected");
+  Meteor.call("endWatch", protocol_id);
+
+  var val = {};
+  val[type + 'interface.name'] = type_value + "_" + mode_value;
+  val[type + 'interface.transport.mode'] = mode_value;
+  val[type + 'interface.transport.type'] = type_value;
+
+  Protdef.update({
+    _id: protocol_id
+  }, {
+    '$set': val
+  });
+}
+
+/* Template modalDefTypeAndModeSend*/
+
+Template.modalDefTypeAndModeSend.helpers({
   interface_types: function() {
-    return ["udp", "tcp"];
+    return INTERFACE_TYPES;
   },
 
   interface_modes: function() {
-    return ["client", "server"];
+    return INTERFACE_MODES;
+  }
+});
+
+Template.modalDefTypeAndModeSend.events({
+  'click .switch_interface': function(evt, tmpl) {
+    switchInterface(tmpl, "send_");
+  }
+});
+
+/* Template modalDefTypeAndModeRecv*/
+
+Template.modalDefTypeAndModeRecv.helpers({
+  interface_types: function() {
+    return INTERFACE_TYPES;
+  },
+
+  interface_modes: function() {
+    return INTERFACE_MODES;
+  }
+});
+
+Template.modalDefTypeAndModeRecv.events({
+  'click .switch_interface': function(evt, tmpl) {
+    switchInterface(tmpl, "recv_");
   }
 });
