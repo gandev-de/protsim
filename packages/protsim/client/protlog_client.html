@@ -57,7 +57,7 @@
 					{{#each protlog}}
 					<tr class="log_entry" id="{{_id}}">
 						<td style="width: 20%">{{timestamp_formatted timestamp}}</td>
-						<td>{{direction}}</td> 	
+						<td>{{{direction_from direction}}} {{{direction_to direction}}}</td> 	
 						<td>{{protlog_protocol}}</td>
 						<td>{{telegram.name}}</td>
 						<td>{{raw_value}}</td>

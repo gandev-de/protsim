@@ -230,7 +230,7 @@ if (Meteor.isServer) {
     if (Protwatchs[protocol_id] instanceof ProtocolWatch) {
       Protwatchs[protocol_id].stopWatch(direction);
     }
-    delete Protwatchs[protocol_id];
+    //delete Protwatchs[protocol_id];
   };
 
   //publish watch changes

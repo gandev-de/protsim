@@ -30,10 +30,10 @@ if(Meteor.isClient) {
 
 if(Meteor.isServer) {
 	Meteor.publish("protlog", function(protocol_id, telegram_id) {
+		//TODO add some filter e.g. telegram, time etc.
 		return Protlog.find({
 			protocol_id: protocol_id
-			//, telegram_id: telegram_id
-		});
+		}, {sort: {timestamp: 1}});
 	});
 
 	Meteor.methods({

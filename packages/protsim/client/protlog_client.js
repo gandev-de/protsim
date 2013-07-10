@@ -19,6 +19,18 @@ Template.protlog.helpers({
 	//	return Session.get("protlog_ready");
 	// },
 
+	direction_from: function(direction) {
+		var from = direction.substr(0, 1).toUpperCase();
+		var color = from == "P" ? "blue": from == "I" ? "green": "red";
+		return '<span class="label" style="background-color: ' + color + ';">' + from + '</span>';
+	},
+
+	direction_to: function(direction) {
+		var from = direction.substr(1, 1).toUpperCase();
+		var color = from == "P" ? "blue": from == "I" ? "green": "red";
+		return '<span class="label" style="background-color: ' + color + ';">' + from + '</span>';
+	},
+
 	logging_active: function() {
 		return Session.get("logging_active");
 	},
@@ -43,7 +55,8 @@ Template.protlog.helpers({
 	},
 
 	timestamp_formatted: function(timestamp) {
-		return new Date(timestamp).toString('dd.MM.yyyy HH:mm:ss');
+		var d = new Date(timestamp); //TODO datejs no milliseconds FormatSpecifier!?
+		return d.toString('dd.MM.yyyy HH:mm:ss.') + d.getMilliseconds();
 	}
 });
 
