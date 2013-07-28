@@ -1,6 +1,6 @@
 Interface = function(options) {
 	options = options || {};
-  this._id = options._id;
+  this._id = options._id || Random.id();
 	this.name = options.name || "udp_";
 	this.transport = options.transport || {type: "udp"};
   //transport default values

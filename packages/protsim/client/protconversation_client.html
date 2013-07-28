@@ -3,7 +3,7 @@
 		<h2>Protocol Conversation <small>[{{protocol.name}}]</small></h2>
 	</div>
 
-  <div class="row conversation_controls">
+  <div class="row conversation_selection">
     {{#with protocol}}
     <div class="span1">
       Conversations:<br>
@@ -23,17 +23,29 @@
 
   <div class="row conversation">
     {{#with protocol}}
+    <div class="span1" style="position: relative;">
+      <div class="conversation_controls">
+        {{#if conversation_selected}}
+          {{#if conversation_active}}
+            <a class="btn" id="stop_conversation"><i class="icon-off"></i></a>
+          {{else}}
+            <a class="btn" id="start_conversation"><i class="icon-play"></i></a>
+          {{/if}}
+        {{/if}}
+      </div>
+    </div>
     <div class="span6 conversations">
     	<div class="conversation" style="float: left;">
          {{#constant}}
           <svg width="600" height="600">
             <defs></defs>
             <rect class="telegram_select_conversation"></rect>
+            <rect class="telegram_select_conversation_active"></rect>
           </svg>
         {{/constant}}
       </div>
     </div>
-    <div class="span6">
+    <div class="span5">
       {{#with conversation_telegram}}
       <table class="table">
         <thead>

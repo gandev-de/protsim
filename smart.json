@@ -1,6 +1,9 @@
 {
   "packages": {
     "mini-pages": {},
-    "controls": {}
+    "controls": {},
+    "spin": {},
+    "router": {},
+    "z-mongo-admin": {}
   }
 }

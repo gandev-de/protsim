@@ -1,12 +1,13 @@
 Protlog = new Meteor.Collection("protlog");
 
-addLogEntry = Meteor.bindEnvironment(function(protocol_id, telegram, raw_value, direction) {
+addLogEntry = Meteor.bindEnvironment(function(protocol_id, telegram, raw_value, direction, conversation) {
 	Protlog.insert({
 		timestamp: new Date(),
 		protocol_id: protocol_id,
 		telegram: telegram,
 		raw_value: raw_value,
-		direction: direction
+		direction: direction,
+		conversation: conversation
 	});
 }, function(err) {
 	console.log(err);

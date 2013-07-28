@@ -5,28 +5,28 @@ Protocol = function(options) {
   this.send_interface = options.send_interface || new Interface();
   this.recv_interface = options.recv_interface || new Interface();
   this.telegrams = options.telegrams || [new Telegram()];
-  this.conversations = options.conversations || [{
-    name: "conversation",
-    conversation: []
-  }];
+  this.conversations = options.conversations || [new Conversation()];
 };
 
 Protocol.fromJSONValue = function(value) {
+  var telegrams = [];
+  _.each(value.telegrams, function(telegram_json) {
+    telegrams.push(Telegram.fromJSONValue(telegram_json));
+  });
+
+  var conversations = [];
+  _.each(value.conversations, function(conversation_json) {
+    conversations.push(Conversation.fromJSONValue(conversation_json));
+  });
+
   return new Protocol({
     _id: value._id,
     name: value.name,
-    send_interface: EJSON.fromJSONValue(value.send_interface),
-    recv_interface: EJSON.fromJSONValue(value.recv_interface),
-    telegrams: EJSON.fromJSONValue(value.telegrams),
-    conversations: value.conversations
+    send_interface: Interface.fromJSONValue(value.send_interface),
+    recv_interface: Interface.fromJSONValue(value.recv_interface),
+    telegrams: telegrams,
+    conversations: conversations
   });
-};
-
-Protocol.updateConversationIdx = function(conversation) {
-  _.each(conversation, function(telegram_obj, i) {
-    conversation[i].idx = i;
-  });
-  return conversation;
 };
 
 Protocol.prototype = {
@@ -47,27 +47,7 @@ Protocol.prototype = {
     var conversation = _.find(conversations, function(conv) {
       return conv.name === conversation_name;
     });
-    return conversation || {conversation: []};
-  },
-
-  findConversationTelegramByIdx: function(conversation_name, idx) {
-    if(!conversation_name) return;
-
-    var protocol = this;
-    var conversations = protocol.conversations;
-    var conversation = _.find(conversations, function(conv) {
-      return conv.name === conversation_name;
-    });
-
-    if(!conversation) return;
-
-    var telegram_obj = _.find(conversation.conversation, function(tel) {
-      return tel.idx === idx;
-    });
-
-    if(!telegram_obj) return;
-
-    return telegram_obj;
+    return conversation || new Conversation();
   },
 
   typeName: function() {
@@ -95,13 +75,25 @@ Protocol.prototype = {
   },
 
   toJSONValue: function() {
+    var telegrams_json = [];
+    _.each(this.telegrams, function(telegram) {
+      var telegram_json = telegram.toJSONValue();
+      telegrams_json.push(telegram_json);
+    });
+
+    var conversations_json = [];
+    _.each(this.conversations, function(conversation) {
+      var conversation_json = conversation.toJSONValue();
+      conversations_json.push(conversation_json);
+    });
+
     return {
       _id: this._id,
       name: this.name,
-      send_interface: EJSON.toJSONValue(this.send_interface),
-      recv_interface: EJSON.toJSONValue(this.recv_interface),
-      telegrams: EJSON.toJSONValue(this.telegrams),
-      conversations: this.conversations
+      send_interface: this.send_interface.toJSONValue(),
+      recv_interface: this.recv_interface.toJSONValue(),
+      telegrams: telegrams_json,
+      conversations: conversations_json
     };
   }
 };

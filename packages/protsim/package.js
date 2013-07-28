@@ -6,8 +6,8 @@ Package.on_use(function(api) {
   api.use(["ejson", "underscore", "random"], ["client", "server"]);
   api.use(["bootstrap", "templating", "handlebars", "controls", "d3", "jquery"], ["client"]);
 
-  api.add_files(["interface.js", "protocol.js", "telegram.js"], ["client", "server"]);
-  api.add_files(["protwatch.js", "protdef.js", "protlog.js"], ["client", "server"]);
+  api.add_files(["interface.js", "telegram.js", "conversation.js", "protocol.js"], ["client", "server"]);
+  api.add_files(["protdef.js", "protwatch.js", "protlog.js"], ["client", "server"]);
 
   api.add_files(["client/protsim.css", "client/form_enhanced.js"], ["client"]);
   api.add_files(["client/protdef_client.html", "client/protdef_client.js"], ["client"]);

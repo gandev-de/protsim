@@ -18,7 +18,7 @@ var type_lengths = {
 
 Telegram = function(options) {
 	options = options || {};
-	this._id = options._id;
+	this._id = options._id || Random.id();
 	this.name = options.name || "default-tel";
 	this.type = options.type || ["send", "receive"];
 	this.values = options.values || [{

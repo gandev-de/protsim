@@ -313,11 +313,15 @@ function swapValue(telegram, value_name, direction) {
     telegram.values);
 }
 
-function updateProtdefValue(value_selector, value) {
+function updateProtdefValue(value_selector, value, id) {
   var val = {};
   val[value_selector] = value;
+  id = id || Session.get("protocol_selected");
+
+  if(!id) return;
+
   Protdef.update({
-    _id: Session.get("protocol_selected")
+    _id: id
   }, {
     '$set': val
   });

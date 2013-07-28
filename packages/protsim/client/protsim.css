@@ -98,6 +98,12 @@
 
 /* conversation */
 
+.conversation_controls {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+}
+
 .select_conversation.selected {
     background-color: rgb(147, 168, 35);
 }
