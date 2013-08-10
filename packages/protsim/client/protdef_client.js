@@ -13,6 +13,94 @@ Control.create('TelegramForm', {
   }
 });
 
+var INTERFACE_TYPES = ["udp", "tcp"];
+var INTERFACE_MODES = ["client", "server"];
+
+var switchInterface = function(tmpl, type) {
+  var mode_value = '';
+  var transport_type = tmpl.find("#interface_type");
+  var type_value = transport_type.options[transport_type.selectedIndex].text;
+
+  if(type_value != "udp") {
+    var mode = tmpl.find("#interface_mode");
+    mode_value = mode.options[mode.selectedIndex].text;
+  }
+
+  var protocol_id = Session.get("protocol_selected");
+  Meteor.call("endWatch", protocol_id);
+
+  var val = {};
+  val[type + 'interface.name'] = type_value + "_" + mode_value;
+  val[type + 'interface.transport.mode'] = mode_value;
+  val[type + 'interface.transport.type'] = type_value;
+
+  Protdef.update({
+    _id: protocol_id
+  }, {
+    '$set': val
+  });
+};
+
+var swapValue = function(telegram, value_name, direction) {
+ var new_values = [];
+ var skip_next = false;
+  _.each(telegram.values, function(value, i, l) {
+    if(skip_next === false) {
+      if(l.length == 1 || value.name !== value_name) {
+        new_values.push(value);
+      } else {
+        if(direction == "up") {
+          var last_value = new_values[i - 1];
+          if(last_value) {
+            //swap with upper value if at least second
+            new_values[i - 1] = value;
+            new_values.push(last_value);
+          } else {
+            //at the top
+            new_values.push(value);
+          }
+        } else if(direction == "down") {
+          var next_value = l[i + 1];
+          if(next_value) {
+            //swap with upper value if at least second
+            new_values.push(next_value);
+            new_values.push(value);
+            skip_next = true;
+          } else {
+            //at the bottom
+            new_values.push(value);
+          }
+        }
+      }
+    } else {
+      skip_next = false;
+    }
+  });
+
+  telegram.values = new_values;
+
+  console.log(telegram);
+
+  Meteor.call('updateTelegram',
+    Session.get("protocol_selected"),
+    telegram._id,
+    telegram.values);
+};
+
+var updateProtdefValue = function(value_selector, value, id) {
+  var val = {};
+  val[value_selector] = value;
+  id = id || Session.get("protocol_selected");
+
+  if(!id) return;
+
+  Protdef.update({
+    _id: id
+  }, {
+    '$set': val
+  });
+};
+
 ////////// Helpers for in-place editing //////////
 
 // Returns an event map that handles the "escape" and "return" keys and
@@ -267,66 +355,6 @@ Template.protdef.events({
   }
 });
 
-function swapValue(telegram, value_name, direction) {
- var new_values = [];
- var skip_next = false;
-  _.each(telegram.values, function(value, i, l) {
-    if(skip_next === false) {
-      if(l.length == 1 || value.name !== value_name) {
-        new_values.push(value);
-      } else {
-        if(direction == "up") {
-          var last_value = new_values[i - 1];
-          if(last_value) {
-            //swap with upper value if at least second
-            new_values[i - 1] = value;
-            new_values.push(last_value);
-          } else {
-            //at the top
-            new_values.push(value);
-          }
-        } else if(direction == "down") {
-          var next_value = l[i + 1];
-          if(next_value) {
-            //swap with upper value if at least second
-            new_values.push(next_value);
-            new_values.push(value);
-            skip_next = true;
-          } else {
-            //at the bottom
-            new_values.push(value);
-          }
-        }
-      }
-    } else {
-      skip_next = false;
-    }
-  });
-
-  telegram.values = new_values;
-
-  console.log(telegram);
-
-  Meteor.call('updateTelegram',
-    Session.get("protocol_selected"),
-    telegram._id,
-    telegram.values);
-}
-
-function updateProtdefValue(value_selector, value, id) {
-  var val = {};
-  val[value_selector] = value;
-  id = id || Session.get("protocol_selected");
-
-  if(!id) return;
-
-  Protdef.update({
-    _id: id
-  }, {
-    '$set': val
-  });
-}
-
 //************* interface Template *************
 
 Template.interface.created = function() {
@@ -406,36 +434,6 @@ Template.interface.events(okCancelEvents(
     Session.set('editing_remote_ip', null);
   }
 }));
-
-/* Template modal helper */
-
-var INTERFACE_TYPES = ["udp", "tcp"];
-var INTERFACE_MODES = ["client", "server"];
-
-function switchInterface(tmpl, type) {
-  var mode_value = '';
-  var transport_type = tmpl.find("#interface_type");
-  var type_value = transport_type.options[transport_type.selectedIndex].text;
-
-  if(type_value != "udp") {
-    var mode = tmpl.find("#interface_mode");
-    mode_value = mode.options[mode.selectedIndex].text;
-  }
-
-  var protocol_id = Session.get("protocol_selected");
-  Meteor.call("endWatch", protocol_id);
-
-  var val = {};
-  val[type + 'interface.name'] = type_value + "_" + mode_value;
-  val[type + 'interface.transport.mode'] = mode_value;
-  val[type + 'interface.transport.type'] = type_value;
-
-  Protdef.update({
-    _id: protocol_id
-  }, {
-    '$set': val
-  });
-}
 
 /* Template modalDefTypeAndModeSend*/
 

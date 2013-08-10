@@ -11,7 +11,9 @@ ProtConversation = function(protocol_id, conversation) {
 	self.state_dep = new Deps.Dependency();
 	self.conversation = conversation;
 
-	self.protwatch_handle = Protwatch.find({_id: protocol_id}).observe({
+	self.protwatch_handle = Protwatch.find({
+		_id: protocol_id
+	}).observe({
 		changed: function(newDoc, oldDoc) {
 			self._setState(newDoc.conversation_state);
 		}
@@ -30,12 +32,12 @@ ProtConversation.prototype = {
 	_setState: function(new_state) {
 		var self = this;
 		//TODO if (!_.isEqual(self.state, new_state)) {
-			self.currentIdx = new_state.sequence_idx;
-			if(new_state.state !== Conversation.ACTIVE) {
-				self.active = false;
-			}
-			self.state = new_state;
-			self.state_dep.changed();
+		self.currentIdx = new_state.sequence_idx;
+		if (new_state.state !== Conversation.ACTIVE) {
+			self.active = false;
+		}
+		self.state = new_state;
+		self.state_dep.changed();
 		//}
 	},
 
@@ -64,6 +66,55 @@ ProtConversation.prototype = {
 			//cancel Conversation
 			Meteor.call("cancelConversation", Session.get("protocol_selected"));
 		}
+	}
+};
+
+var _direction_str = function(participant, direction) {
+	switch (participant) {
+		case 'INITIATOR':
+			return 'ip';
+		case 'PROTSIM':
+			return 'p' + (direction || 'r');
+		case 'RESPONDER':
+			return 'rp';
+	}
+};
+
+var _direction = function(direction) {
+	//TODO calculate tel_text_x
+	switch (direction) {
+		case 'ip':
+			return {
+				color: "green",
+				class: "ip",
+				tel_text_x: participants.width / 2 + 30,
+				x1: 55,
+				x2: 255 - markerWidth * 2
+			};
+		case 'pi':
+			return {
+				color: "blue",
+				class: "pi",
+				tel_text_x: participants.width / 2 + 30,
+				x1: 255,
+				x2: 55 + markerWidth * 2
+			};
+		case 'pr':
+			return {
+				color: "blue",
+				class: "pr",
+				tel_text_x: 200 + participants.width / 2 + 30,
+				x1: 255,
+				x2: 455 - markerWidth * 2
+			};
+		case 'rp':
+			return {
+				color: "red",
+				class: "rp",
+				tel_text_x: 200 + participants.width / 2 + 30,
+				x1: 455,
+				x2: 255 + markerWidth * 2
+			};
 	}
 };
 
@@ -197,7 +248,6 @@ Template.protconversation.events({
 	}
 });
 
-//TODO participants (men in the middle)
 var participants = [];
 
 participants.width = 110;
@@ -413,7 +463,7 @@ Template.protconversation.rendered = function() {
 			if (sequence.length > 0) {
 				var select_rect_width, select_rect_height, telegram_obj, direction, x, y;
 				//separate selection rectangle for current state
-				if(current_conversation /* TODO && current_conversation.isActive() */) {
+				if (current_conversation /* TODO && current_conversation.isActive() */ ) {
 					var sequence_idx = current_conversation.getCurrentIdx();
 					select_rect_width = 220;
 					select_rect_height = 30;
@@ -513,55 +563,6 @@ Template.protconversation.rendered = function() {
 					});
 			}
 		});
-	}
-
-	function _direction_str(participant, direction) {
-		switch (participant) {
-			case 'INITIATOR':
-				return 'ip';
-			case 'PROTSIM':
-				return 'p' + (direction || 'r');
-			case 'RESPONDER':
-				return 'rp';
-		}
-	}
-
-	function _direction(direction) {
-		//TODO calculate tel_text_x
-		switch (direction) {
-			case 'ip':
-				return {
-					color: "green",
-					class: "ip",
-					tel_text_x: participants.width / 2 + 30,
-					x1: 55,
-					x2: 255 - markerWidth * 2
-				};
-			case 'pi':
-				return {
-					color: "blue",
-					class: "pi",
-					tel_text_x: participants.width / 2 + 30,
-					x1: 255,
-					x2: 55 + markerWidth * 2
-				};
-			case 'pr':
-				return {
-					color: "blue",
-					class: "pr",
-					tel_text_x: 200 + participants.width / 2 + 30,
-					x1: 255,
-					x2: 455 - markerWidth * 2
-				};
-			case 'rp':
-				return {
-					color: "red",
-					class: "rp",
-					tel_text_x: 200 + participants.width / 2 + 30,
-					x1: 455,
-					x2: 255 + markerWidth * 2
-				};
-		}
 	}
 };
 

@@ -23,7 +23,7 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isServer) {
-  var dgram = Npm.require("dgram");
+  var dgram = Npm.require('dgram');
   var util = Npm.require('util');
   var net = Npm.require('net');
   var events = Npm.require('events');
