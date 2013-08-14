@@ -5,3 +5,4 @@ controls
 spin
 router
 z-mongo-admin
+iron-router

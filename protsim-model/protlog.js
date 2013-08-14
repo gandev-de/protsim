@@ -10,7 +10,7 @@ addLogEntry = Meteor.bindEnvironment(function(protocol_id, telegram, raw_value, 
 		conversation: conversation
 	});
 }, function(err) {
-	console.log(err);
+	Log.info(err);
 });
 
 if(Meteor.isClient) {
@@ -43,16 +43,20 @@ if(Meteor.isServer) {
 		},
 
 		startLogging: function(protocol) {
-			if(Protwatchs) {
-				Protwatchs[protocol._id].logging_active = true;
-				console.log("start logging", protocol._id);
+			var supervision = ActiveSupervisions.get(protocol._id);
+			if(supervision) {
+				supervision.logging_active = true;
+				Log.info("start logging: " + protocol._id);
+			} else {
+				Log.error("no supervision with: " + protocol._id + " active");
 			}
 		},
 
 		stopLogging: function(protocol) {
-			if(Protwatchs) {
-				Protwatchs[protocol._id].logging_active = false;
-				console.log("stop logging", protocol._id);
+			var supervision = ActiveSupervisions.get(protocol._id);
+			if(supervision) {
+				supervision.logging_active = false;
+				Log.info("stop logging: " + protocol._id);
 			}
 		}
 	});

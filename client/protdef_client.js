@@ -1,17 +1,19 @@
-Control.create('TelegramForm', {
-  extend: FormEnhanced,
+// TODO
+//
+// Control.create('TelegramForm', {
+//   extend: FormEnhanced,
 
-  onSubmit: function (fields, form) {
-    console.log(fields);
+//   onSubmit: function (fields, form) {
+//     Log.info(fields);
 
-    Meteor.call("updateTelegram",
-      Session.get("protocol_selected"),
-      Session.get("telegram_selected_def"),
-      _.values(fields));
+//     Meteor.call("updateTelegram",
+//       Session.get("protocol_selected"),
+//       Session.get("telegram_selected_def"),
+//       _.values(fields));
 
-    //form.reset(); //TODO weird behavior
-  }
-});
+//     //form.reset(); //TODO weird behavior
+//   }
+// });
 
 var INTERFACE_TYPES = ["udp", "tcp"];
 var INTERFACE_MODES = ["client", "server"];
@@ -79,7 +81,7 @@ var swapValue = function(telegram, value_name, direction) {
 
   telegram.values = new_values;
 
-  console.log(telegram);
+  Log.info(telegram);
 
   Meteor.call('updateTelegram',
     Session.get("protocol_selected"),
@@ -138,14 +140,16 @@ var activateInput = function(input) {
 Session.set("protocol_selected", null);
 Session.set("telegram_selected_def", null);
 
-Protdef.find().observe({
-  added: function(doc) {
-    //select random protocol if none selected
-    if(Session.equals("protocol_selected", null)) {
-      var protocol = doc || {_id: null};
-      Session.set("protocol_selected", protocol._id);
+Meteor.startup(function() {
+  Protdef.find().observe({
+    added: function(doc) {
+      //select random protocol if none selected
+      if(Session.equals("protocol_selected", null)) {
+        var protocol = doc || {_id: null};
+        Session.set("protocol_selected", protocol._id);
+      }
     }
-  }
+  });
 });
 
 //************* protdef Template *************
@@ -316,7 +320,7 @@ Template.protdef.events({
 
     telegram.addValue(value_name);
 
-    console.log(telegram);
+    Log.info(telegram);
 
     Meteor.call('updateTelegram',
       Session.get("protocol_selected"),
@@ -332,7 +336,7 @@ Template.protdef.events({
       return l.length == 1 || value.name !== value_name;
     });
 
-    console.log(telegram);
+    Log.info(telegram);
 
     Meteor.call('updateTelegram',
       Session.get("protocol_selected"),

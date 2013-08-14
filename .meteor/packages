@@ -10,3 +10,9 @@ accounts-ui
 accounts-password
 jquery
 random
+standard-app-packages
+iron-router
+ejson
+d3
+protsim-ejson
+protsim-supervision

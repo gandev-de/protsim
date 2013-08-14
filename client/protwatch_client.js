@@ -123,7 +123,7 @@ function loadHistoryValues(tmpl) {
 
 Template.protwatch.rendered = function() {
   var tmpl = this;
-  console.log("protwatch rendered");
+  Log.info("protwatch rendered");
   loadHistoryValues(tmpl);
 };
 

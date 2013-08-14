@@ -1,6 +1,5 @@
 {
   "packages": {
-    "mini-pages": {},
-    "controls": {}
+    "iron-router": {}
   }
 }

@@ -5,7 +5,7 @@ Session.set("mouseover_log_entry", null);
 
 Template.protlog.rendered = function() {
 	var tmpl = this;
-	console.log("protlog rendered");
+	Log.info("protlog rendered");
 };
 
 Template.protlog.helpers({
@@ -66,7 +66,7 @@ Template.protlog.events({
 
 		Meteor.call("startLogging", protocol);
 		Session.set("logging_active", true);
-		console.log("start logging");
+		Log.info("start logging");
 	},
 
 	'click #stop_logging': function(evt, tmpl) {
@@ -74,7 +74,7 @@ Template.protlog.events({
 
 		Meteor.call("stopLogging", protocol);
 		Session.set("logging_active", false);
-		console.log("stop logging");
+		Log.info("stop logging");
 	},
 
 	'click #clear_log': function(evt, tmpl) {

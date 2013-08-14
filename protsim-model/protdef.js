@@ -21,10 +21,10 @@ if (Meteor.isServer) {
 			Protdef.update({
 				_id: protocol._id
 			}, protocol_json);
-			console.log("protocol updated: ", protocol.name);
+			Log.info("protocol updated: " + protocol.name);
 		} else {
 			Protdef.insert(_.omit(protocol_json, '_id'));
-			console.log("protocol added: ", protocol.name);
+			Log.info("protocol added: " + protocol.name);
 		}
 	};
 
@@ -61,7 +61,7 @@ if (Meteor.isServer) {
 					'telegrams.$.name': telegram_name
 				}
 			});
-			console.log("telegram updated: ", telegram._id, " name: ", telegram_name);
+			Log.info("telegram updated: " + telegram._id + " name: " + telegram_name);
 		}
 	});
 }

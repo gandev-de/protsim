@@ -9,12 +9,12 @@
   <div class="container">
 	<div class="navbar">
 	  <div class="navbar-inner">
-	    <a class="brand" href="{{rootPath}}">Protsim</a>
+	    <a class="brand" href="{{pathFor 'protdef'}}">Protsim</a>
 	    <ul class="nav">
-	      <li class="{{navClassFor 'definition'}}"><a href="{{protdefPath}}">Definition</a></li>
-	      <li class="{{navClassFor 'watch'}}"><a href="{{protwatchPath}}">Watch</a></li>
-	      <li class="{{navClassFor 'conversation'}}"><a href="{{protconversationPath}}">Conversation</a></li>
-	      <li class="{{navClassFor 'log'}}"><a href="{{protlogPath}}">Log</a></li>
+	      <li class="{{navClassFor 'definition'}}"><a href="{{pathFor 'protdef'}}">Definition</a></li>
+	      <li class="{{navClassFor 'watch'}}"><a href="{{pathFor 'protwatch'}}">Watch</a></li>
+	      <li class="{{navClassFor 'conversation'}}"><a href="{{pathFor 'protconversation'}}">Conversation</a></li>
+	      <li class="{{navClassFor 'log'}}"><a href="{{pathFor 'protlog'}}">Log</a></li>
 	    </ul>
 	    <ul class="nav pull-right">
 	      <li>{{loginButtons}}</li>
@@ -24,4 +24,12 @@
     	
     {{{yield}}}
   </div>
+</template>
+
+<template name="loading">
+  <h1>Loading...</h1>
+</template>
+
+<template name="notFound">
+  <h1>Not Found!</h1>
 </template>

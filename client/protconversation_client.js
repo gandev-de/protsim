@@ -176,9 +176,9 @@ Template.protconversation.events({
 	'change #conversation_telegram': function(evt, tmpl) {
 		var protocol = this;
 
-		console.log(evt.srcElement.selectedOptions);
+		Log.info(evt.srcElement.selectedOptions);
 		var telegram_id = evt.srcElement.selectedOptions['0'].value;
-		console.log(telegram_id);
+		Log.info(telegram_id);
 
 		conversation_telegram = telegram_id;
 	},
@@ -289,7 +289,7 @@ Template.protconversation.rendered = function() {
 	var self = this;
 	self.node = self.find("svg");
 
-	console.log("protconversation rendered");
+	Log.info("protconversation rendered");
 
 	if (!self.handle) {
 		self.handle = Deps.autorun(function(computation) {
