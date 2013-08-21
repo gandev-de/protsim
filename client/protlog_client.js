@@ -55,8 +55,7 @@ Template.protlog.helpers({
 	},
 
 	timestamp_formatted: function(timestamp) {
-		var d = new Date(timestamp); //TODO datejs no milliseconds FormatSpecifier!?
-		return d.toString('dd.MM.yyyy HH:mm:ss.') + d.getMilliseconds();
+		return moment(timestamp).format('DD.MM.YYYY HH:mm:ss.SSS');
 	}
 });
 
