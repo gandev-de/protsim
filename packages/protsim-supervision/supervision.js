@@ -35,7 +35,7 @@ ProtocolSupervision = function(protocol) {
   self.conversation_state = {};
 };
 
-ProtocolSupervision.prototype = new events.EventEmitter();
+ProtocolSupervision.prototype = Object.create(events.EventEmitter.prototype);
 
 ProtocolSupervision.prototype._newTelegram = function(msg, direction) {
   var self = this;
